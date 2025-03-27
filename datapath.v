@@ -10,21 +10,24 @@ module datapath (
     input [3:0] alu_control,
     input [1:0] alu_src_a, alu_src_b,
     input [2:0] imm_src,
-    input reg_write
- 
-    // Memory
+    input reg_write,  
+
+    // Memory ports
     output [31:0] mem_addr,
     output [31:0] mem_write_data,
     input [31:0] mem_read_data,
 
-    // Control
+    // Control ports
     output [31:0] instr,
     output zero
 );
-    reg [31:0] result;
-    reg [31:0] pc;
-    reg [31:0] old_pc, instruc_reg;
 
+    // Internal registers
+    wire [31:0] result;
+    wire [31:0] pc;
+    wire [31:0] old_pc, instruc_reg;
+
+    // Internal wires
     wire [31:0] alu_result, alu_out;
     wire [31:0] imm_extended;
     wire [31:0] read_data1, read_data2;
@@ -56,10 +59,12 @@ module datapath (
         .dest0(old_pc),
         .dest1(instruc_reg)
     );
+    
+    assign instr = instruc_reg;
 
     assign rs1 = instruc_reg[19:15];
     assign rs2 = instruc_reg[24:20];
-    assign rd = instruc_reg[11:7];
+    assign rd  = instruc_reg[11:7];
 
     register_file register_file_unit (
         .clk(clk),
@@ -88,7 +93,7 @@ module datapath (
         .dest0(fread_data1),
         .dest1(fread_data2)
     );
-
+    
     assign mem_write_data = fread_data2;
 
     mux3 mux3_alu_src_a (
@@ -102,8 +107,8 @@ module datapath (
     mux3 mux3_alu_src_b (
         .select(alu_src_b),
         .src0(fread_data1),
-        .src1(imm_extend),
-        .src2(4'b0)
+        .src1(imm_extended),
+        .src2(32'b0100),  
         .dest(alu_src_inst_b)
     );
 
@@ -111,26 +116,18 @@ module datapath (
         .a(alu_src_inst_a),
         .b(alu_src_inst_b),
         .alu_control(alu_control),
-        .alu_result(alu_result),
+        .result(alu_result),
         .zero(zero)
     );
 
-    flip_flop_enble last_flip_flop (
+    flip_flop_enble alu_output_ff (
         .clk(clk),
         .rst(rst),
-        .enable(1'b0),
+        .enable(1'b1),  
         .src(alu_result),
         .dest(alu_out)
     );
     
-    flip_flop_enble last_mux_flip_flop(
-        .clk(clk),
-        .rst(rst),
-        .enable(1'b0),
-        .src(alu_result),
-        .dest(alu_out)
-    );
-
     mux3 las_mux3 (
         .select(result_src),
         .src0(alu_out),
@@ -138,5 +135,5 @@ module datapath (
         .src2(alu_result),
         .dest(result)
     );
-
+    
 endmodule

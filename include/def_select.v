@@ -20,4 +20,15 @@
 `define S_TYPE      3'b001
 `define B_TYPE      3'b010
 `define U_TYPE      3'b011
-`define J_TYPE      3'b100 
+`define J_TYPE      3'b100
+
+// Intruction Opcodes
+`define OP_R_TYPE   7'b011_0011
+`define OP_I_TYPE   7'b001_0011
+`define OP_I_LOAD   7'b000_0011
+`define OP_I_JALR   7'b110_0111
+`define OP_B_TYPE   7'b110_0011
+`define OP_S_TYPE   7'b010_0011
+`define OP_J_TYPE   7'b110_1111
+`define OP_U_AUIPC  7'b001_0111
+`define OP_U_LUI    7'b011_0111

@@ -10,7 +10,7 @@ module control (
     output [1:0]  ALUSrcB,
     output [1:0]  AlUSrcA,
     output [2:0]  ImmSrc,
-    output        RegDst    
+    output        RegWrite   
 );
     
 endmodule

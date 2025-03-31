@@ -54,8 +54,14 @@ module core( // Core module
   );
   
   control ctrl (
+    .clk(clk)
+    .rst(rst)
+
+    // Signal from the Datapath
     .instr(instr),
     .zero(zero),
+    
+    // Control signals
     .PCWrite(pc_write),
     .AdrSrc(adr_src),
     .MemWrite(mem_write),

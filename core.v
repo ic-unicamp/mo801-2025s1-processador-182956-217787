@@ -54,8 +54,8 @@ module core( // Core module
   );
   
   control ctrl (
-    .clk(clk)
-    .rst(rst)
+    .clk(clk),
+    .rst(resetn),
 
     // Signal from the Datapath
     .instr(instr),

@@ -10,21 +10,25 @@ module control (
     output reg        MemWrite,
     output reg        IRWrite,
     output reg [1:0]  ResultSrc,
-    output reg [3:0]  ALUControl,
+    output     [3:0]  ALUControl,
     output reg [1:0]  ALUSrcB,
     output reg [1:0]  ALUSrcA,
-    output reg [2:0]  ImmSrc,
+    output     [2:0]  ImmSrc,
     output reg        RegWrite
 );
 
     // FSM State Definition
     parameter FETCH   = 4'b0000;
-    parameter DECODE  = 4'b0001
+    parameter DECODE  = 4'b0001;
     parameter JAL     = 4'b0010;
+    parameter ALU_WB  = 4'b0011;
+    parameter MEM_WB  = 4'b0100;
+    parameter BEQ     = 4'b0101;
     // TODO: Define the other states
 
     // Internal signals
     reg [3:0] state, next_state;
+    reg [1:0] alu_op;
     wire [6:0] opcode;
     wire [2:0] funct3;
     wire [6:0] funct7;
@@ -35,6 +39,7 @@ module control (
     assign funct7 = instr[31:25];
     
     alu_decoder alu_dec (
+        .alu_op(alu_op),
         .opcode(opcode),
         .funct3(funct3),
         .funct7(funct7),
@@ -64,12 +69,22 @@ module control (
             DECODE: begin
                 case (opcode)
                     // TODO: Write the logic for other states
-                    `OP_J_TYPE:  next_state = JAL;
+                    `OP_B_TYPE:     next_state = BEQ;
+                    `OP_J_TYPE:     next_state = JAL;
                 endcase
             end
 
             // TODO: Write the logic fot the other states
             JAL:
+                next_state = ALU_WB;
+            
+            ALU_WB:
+                next_state = MEM_WB;
+            
+            BEQ:
+                next_state = MEM_WB;
+            
+            MEM_WB:
                 next_state = FETCH;
 
             default:
@@ -79,6 +94,16 @@ module control (
 
     // Output logic
     always @(*) begin
+        PCWrite   = 1'b0;
+        AdrSrc    = 1'b0;
+        MemWrite  = 1'b0;
+        IRWrite   = 1'b0;
+        ResultSrc = 2'b00;
+        ALUSrcB   = 2'b00;
+        ALUSrcA   = 2'b00;
+        RegWrite  = 1'b0;
+        alu_op    = 2'b00;
+
         case (state)
             FETCH: begin
                 AdrSrc   = 1'b0;   // Select PC as memory address
@@ -87,11 +112,13 @@ module control (
                 ALUSrcB  = 2'b10;  // Select constant 4 for ALU input B
                 ResultSrc = 2'b10; // Select ALU Result
                 PCWrite  = 1'b1;   // Enable writing to PC
+                alu_op   = 2'b00;
             end
             
             DECODE: begin
                 ALUSrcA  = 2'b01;  // Select old PC for ALU input A
                 ALUSrcB  = 2'b01;  // Select immediate for ALU input B
+                alu_op   = 2'b00;
             end
 
             JAL: begin
@@ -100,6 +127,25 @@ module control (
                 ResultSrc = 2'b00; // Select ALU Out for link address
                 PCWrite  = 1'b1;   // Enable PC write
                 RegWrite = 1'b1;   // Enable register write for link address
+            end
+            
+            ALU_WB:  begin
+                ResultSrc = 2'b00; // Select ALU Out
+                RegWrite  = 1'b1;  // Enable register write
+            end
+
+            BEQ: begin
+                ALUSrcA  = 2'b10;  // Select register data for ALU input A
+                ALUSrcB  = 2'b00;  // Select register data for ALU input B
+                ResultSrc = 2'b00; // Select Memory Data
+                alu_op   = 2'b01;
+                if (zero)
+                    PCWrite = 1'b1; // Enable PC write if branch taken
+            end
+
+            MEM_WB: begin
+                ResultSrc = 2'b01; // Select Memory Data
+                RegWrite  = 1'b1;  // Enable register write
             end
 
             default: begin

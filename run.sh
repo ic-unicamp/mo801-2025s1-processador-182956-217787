@@ -3,7 +3,7 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-if ! iverilog -o tb *.v; then
+if ! iverilog -I include/ -o tb *.v; then
     echo "Erro ao compilar com iverilog"
     exit 1
 fi

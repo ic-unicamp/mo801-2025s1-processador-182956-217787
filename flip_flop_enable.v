@@ -1,4 +1,4 @@
-module flip_flop_enable(
+module flip_flop_enable (
     input           clk,
     input           enable,
     input           rst,

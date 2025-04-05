@@ -35,7 +35,7 @@ module datapath (
     wire [31:0] alu_src_inst_a, alu_src_inst_b; 
     wire [4:0] rs1, rs2, rd;
     
-    flip_flop_enble pc_next_logic (
+    flip_flop_enable pc_next_logic (
         .clk(clk),
         .rst(rst),
         .enable(pc_write),
@@ -106,7 +106,7 @@ module datapath (
 
     mux3 mux3_alu_src_b (
         .select(alu_src_b),
-        .src0(fread_data1),
+        .src0(fread_data2),
         .src1(imm_extended),
         .src2(32'b0100),  
         .dest(alu_src_inst_b)
@@ -120,7 +120,7 @@ module datapath (
         .zero(zero)
     );
 
-    flip_flop_enble alu_output_ff (
+    flip_flop_enable alu_output_ff (
         .clk(clk),
         .rst(rst),
         .enable(1'b1),  

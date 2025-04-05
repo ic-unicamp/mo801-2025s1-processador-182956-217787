@@ -8,9 +8,9 @@ module alu_decoder (
 
     always @(*) begin
         case (alu_op)
-            00: alu_control = `ALU_ADD;
-            01: alu_control = `ALU_SUB;
-            10: begin
+            2'b00: alu_control = `ALU_ADD;
+            2'b01: alu_control = `ALU_SUB;
+            2'b10: begin
                 case (opcode)
                     `OP_R_TYPE: begin
                         case (funct3)

@@ -24,7 +24,7 @@ module control (
     parameter ALU_WB  = 4'b0011;
     parameter MEM_WB  = 4'b0100;
     parameter BEQ     = 4'b0101;
-    parameter EXECUTE_I = 4'b110;
+    parameter EXECUTE_I = 4'b0110;
     // TODO: Define the other states
 
     // Internal signals
@@ -84,10 +84,10 @@ module control (
                 next_state = ALU_WB;
             
             ALU_WB:
-                next_state = MEM_WB;
+                next_state = FETCH;
             
             BEQ:
-                next_state = MEM_WB;
+                next_state = FETCH;
             
             MEM_WB:
                 next_state = FETCH;
@@ -151,8 +151,10 @@ module control (
                 ALUSrcB  = 2'b00;  // Select register data for ALU input B
                 ResultSrc = 2'b00; // Select Memory Data
                 alu_op   = 2'b01;
-                if (zero)
+                if (zero && funct3 == 3'b000) // beq
                     PCWrite = 1'b1; // Enable PC write if branch taken
+                if (~zero && funct3 == 3'b001) // bne
+                    PCWrite = 1'b1;
             end
 
             MEM_WB: begin

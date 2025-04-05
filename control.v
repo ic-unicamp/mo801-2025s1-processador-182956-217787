@@ -24,6 +24,7 @@ module control (
     parameter ALU_WB  = 4'b0011;
     parameter MEM_WB  = 4'b0100;
     parameter BEQ     = 4'b0101;
+    parameter EXECUTE_I = 4'b110;
     // TODO: Define the other states
 
     // Internal signals
@@ -69,12 +70,16 @@ module control (
             DECODE: begin
                 case (opcode)
                     // TODO: Write the logic for other states
+                    `OP_I_TYPE:     next_state = EXECUTE_I;
                     `OP_B_TYPE:     next_state = BEQ;
                     `OP_J_TYPE:     next_state = JAL;
                 endcase
             end
 
             // TODO: Write the logic fot the other states
+            EXECUTE_I:
+                next_state = ALU_WB;
+
             JAL:
                 next_state = ALU_WB;
             
@@ -120,6 +125,12 @@ module control (
                 ALUSrcB  = 2'b01;  // Select immediate for ALU input B
                 alu_op   = 2'b00;
             end
+            
+            EXECUTE_I: begin
+                ALUSrcA = 2'b10;   // Select rs1 value for ALU input A
+                ALUSrcB = 2'b01;   // Select rs2 value for ALU input B
+                alu_op = 2'b10;     // ALU operation determined by funct3/funct7
+            end
 
             JAL: begin
                 ALUSrcA  = 2'b01;  // Select old PC for ALU input A
@@ -127,6 +138,7 @@ module control (
                 ResultSrc = 2'b00; // Select ALU Out for link address
                 PCWrite  = 1'b1;   // Enable PC write
                 RegWrite = 1'b1;   // Enable register write for link address
+                alu_op = 2'b00;
             end
             
             ALU_WB:  begin

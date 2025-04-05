@@ -25,6 +25,7 @@ module control (
     parameter MEM_WB  = 4'b0100;
     parameter BEQ     = 4'b0101;
     parameter EXECUTE_I = 4'b0110;
+    parameter EXECUTE_R = 4'b0111;
     // TODO: Define the other states
 
     // Internal signals
@@ -70,6 +71,7 @@ module control (
             DECODE: begin
                 case (opcode)
                     // TODO: Write the logic for other states
+                    `OP_R_TYPE:     next_state = EXECUTE_R;
                     `OP_I_TYPE:     next_state = EXECUTE_I;
                     `OP_B_TYPE:     next_state = BEQ;
                     `OP_J_TYPE:     next_state = JAL;
@@ -77,6 +79,9 @@ module control (
             end
 
             // TODO: Write the logic fot the other states
+            EXECUTE_R:
+                next_state = ALU_WB;
+
             EXECUTE_I:
                 next_state = ALU_WB;
 
@@ -126,6 +131,12 @@ module control (
                 alu_op   = 2'b00;
             end
             
+            EXECUTE_R: begin
+                ALUSrcA = 2'b10;   // Select rs1 value for ALU input A
+                ALUSrcB = 2'b00;   // Select rs2 value for ALU input B
+                alu_op = 2'b10;     // ALU operation determined by funct3/funct7
+            end
+
             EXECUTE_I: begin
                 ALUSrcA = 2'b10;   // Select rs1 value for ALU input A
                 ALUSrcB = 2'b01;   // Select rs2 value for ALU input B

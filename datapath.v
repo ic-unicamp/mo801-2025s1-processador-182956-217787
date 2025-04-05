@@ -25,7 +25,7 @@ module datapath (
     // Internal registers
     wire [31:0] result;
     wire [31:0] pc;
-    wire [31:0] old_pc, instruc_reg;
+    wire [31:0] old_pc, instruc_reg, data_to_save;
 
     // Internal wires
     wire [31:0] alu_result, alu_out;
@@ -128,10 +128,18 @@ module datapath (
         .dest(alu_out)
     );
     
+    flip_flop_enable mem_save_ff (
+        .clk(clk),
+        .rst(rst),
+        .enable(1'b1),  
+        .src(mem_read_data),
+        .dest(data_to_save)
+    );
+
     mux3 las_mux3 (
         .select(result_src),
         .src0(alu_out),
-        .src1(mem_read_data),
+        .src1(data_to_save),
         .src2(alu_result),
         .dest(result)
     );

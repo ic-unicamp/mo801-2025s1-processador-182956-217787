@@ -26,6 +26,10 @@ module control (
     parameter BEQ     = 4'b0101;
     parameter EXECUTE_I = 4'b0110;
     parameter EXECUTE_R = 4'b0111;
+    parameter MEM_ADDR = 4'b1000;
+    parameter MEM_READ = 4'b1001;
+    parameter MEM_WRITE = 4'b1010;
+
     // TODO: Define the other states
 
     // Internal signals
@@ -71,10 +75,12 @@ module control (
             DECODE: begin
                 case (opcode)
                     // TODO: Write the logic for other states
-                    `OP_R_TYPE:     next_state = EXECUTE_R;
-                    `OP_I_TYPE:     next_state = EXECUTE_I;
-                    `OP_B_TYPE:     next_state = BEQ;
-                    `OP_J_TYPE:     next_state = JAL;
+                    `OP_R_TYPE: next_state = EXECUTE_R;
+                    `OP_I_TYPE: next_state = EXECUTE_I;
+                    `OP_I_LOAD: next_state = MEM_ADDR;
+                    `OP_S_TYPE: next_state = MEM_ADDR;
+                    `OP_B_TYPE: next_state = BEQ;
+                    `OP_J_TYPE: next_state = JAL;
                 endcase
             end
 
@@ -88,6 +94,19 @@ module control (
             JAL:
                 next_state = ALU_WB;
             
+            MEM_ADDR: begin
+                if (opcode == `OP_S_TYPE)
+                    next_state = MEM_WRITE;
+                else
+                    next_state = MEM_READ;
+            end
+
+            MEM_READ:
+                next_state = MEM_WB;
+
+            MEM_WRITE:
+                next_state = FETCH;
+                
             ALU_WB:
                 next_state = FETCH;
             
@@ -151,6 +170,24 @@ module control (
                 RegWrite = 1'b1;   // Enable register write for link address
                 alu_op = 2'b00;
             end
+
+            MEM_ADDR: begin
+                ALUSrcA = 2'b10;   // Select rs1 value for ALU input A
+                ALUSrcB = 2'b01;   // Select immediate for ALU input B 
+                alu_op = 2'b00;     // ALU performs addition
+            end
+
+            MEM_READ: begin
+                ResultSrc = 2'b00; // Select ALU result for address
+                AdrSrc = 1'b1;     // Use ALU result as memory address
+            end
+            
+            MEM_WRITE: begin
+                ResultSrc = 2'b00; // Select ALU result for address
+                AdrSrc = 1'b1;     // Use ALU result as memory address
+                MemWrite = 1'b1;   // Enable memory write
+            end
+            
             
             ALU_WB:  begin
                 ResultSrc = 2'b00; // Select ALU Out

@@ -63,7 +63,7 @@ module register_file_tb;
     // Test sequence
     initial begin
         // Setup VCD file for waveform analysis
-        $dumpfile("test_waves/register_file_tb.vcd");
+        $dumpfile("register_file_tb.vcd");
         $dumpvars(0, register_file_tb);
         
         // Display header

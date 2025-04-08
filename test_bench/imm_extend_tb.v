@@ -36,7 +36,7 @@ module imm_extended_tb;
     endtask
     
     initial begin
-        $dumpfile("test_waves/imm_extended_tb.vcd");
+        $dumpfile("imm_extend_tb.vcd");
         $dumpvars(0, imm_extended_tb);
         
         $display("\n=== Immediate Extender Testbench Started ===");

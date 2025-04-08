@@ -48,7 +48,7 @@ module alu_tb;
     
     // Test various operations with edge cases
     initial begin
-        $dumpfile("test_waves/alu_tb.vcd");
+        $dumpfile("alu_tb.vcd");
         $dumpvars(0, alu_tb);
         
         // Display header

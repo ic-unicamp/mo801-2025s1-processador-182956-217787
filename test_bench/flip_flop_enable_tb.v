@@ -46,7 +46,7 @@ module flip_flop_enable_tb;
     // Test sequence
     initial begin
         // Setup VCD file for waveform analysis
-        $dumpfile("test_waves/flip_flop_enable_tb.vcd");
+        $dumpfile("flip_flop_enable_tb.vcd");
         $dumpvars(0, flip_flop_enable_tb);
         
         // Display header

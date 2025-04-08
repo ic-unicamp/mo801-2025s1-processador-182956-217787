@@ -3,6 +3,7 @@
 module alu_decoder_tb;
 
     // Inputs
+    reg [1:0] alu_op;
     reg [6:0] opcode;
     reg [2:0] funct3;
     reg [6:0] funct7;
@@ -16,6 +17,7 @@ module alu_decoder_tb;
 
     // Instantiate the Unit Under Test (UUT)
     alu_decoder uut (
+        .alu_op(alu_op),
         .opcode(opcode),
         .funct3(funct3),
         .funct7(funct7),
@@ -38,10 +40,20 @@ module alu_decoder_tb;
     endtask
 
     initial begin
-        $dumpfile("test_waves/alu_decoder_tb.vcd");
+        $dumpfile("alu_decoder_tb.vcd");
         $dumpvars(0, alu_decoder_tb);
         
         $display("\n=== ALU Decoder Testbench Started ===");
+
+        $display("\n=== Testing AlUOP=00 ===");
+        alu_op = 2'b00;
+
+        $display("\nTesting BGE (opcode=1100011, funct3=100)");
+        opcode = `OP_B_TYPE; funct3 = 3'b100;
+        #10; check_result(`ALU_ADD); // Since ALUOP=01, it should perform addition
+
+        $display("\n=== Testing AlUOP=10 ===");
+        alu_op = 2'b10;
 
         // Testing R-Type Instructions
         $display("\nTesting R-Type ADD (opcode=0110011, funct3=000, funct7=0000000)");
@@ -118,12 +130,16 @@ module alu_decoder_tb;
         $display("Tests Passed: %0d", tests_passed);
         $display("Tests Failed: %0d", tests_failed);
 
-        if (tests_failed == 0)
+        #10; 
+        if (tests_failed == 0) begin
             $display("ALL TESTS PASSED!");
-        else
+            $finish(0);
+        end
+        else begin
             $display("SOME TESTS FAILED!");
+            $finish(1);
+        end
 
-        #10 $finish;
     end
 
 endmodule

@@ -18,7 +18,7 @@ module register_file (
     begin
         if (rst == 1'b0)
             begin
-                for (i = 0; i < 32; i = i + 1)
+                for (i = 0; i < NREGISTER; i = i + 1)
                     register[i] <= 32'b0;
             end
         else if (write_enable_3 && rd != 5'b0)

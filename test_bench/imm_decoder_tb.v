@@ -32,7 +32,7 @@ module imm_decoder_tb;
     endtask
     
     initial begin
-        $dumpfile("test_waves/imm_decoder_tb.vcd");
+        $dumpfile("imm_decoder_tb.vcd");
         $dumpvars(0, imm_decoder_tb);
         
         $display("\n=== Immediate Decoder Testbench Started ===");

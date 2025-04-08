@@ -1,3 +1,5 @@
+`include "def_select.v"
+
 module alu_decoder (
     input  [1:0] alu_op,
     input  [6:0] opcode,
@@ -45,10 +47,10 @@ module alu_decoder (
                             3'b000: alu_control = `ALU_SUB;   // BEQ (check if rs1 == rs2)
                             3'b001: alu_control = `ALU_SUB;   // BNE (check if rs1 != rs2)
                             // TODO -> Verify the better way to handle the following branch instructions type
-                            // 3'b100: alu_control = `ALU_SLT;   // BLT
-                            // 3'b101: alu_control = `ALU_SLTU;  // BGE
-                            // 3'b110: alu_control = `ALU_SLT;   // BLTU
-                            // 3'b111: alu_control = `ALU_SLTU;  // BGEU
+                            3'b100: alu_control = `ALU_SLT;    // BLT
+                            3'b101: alu_control = `ALU_SLT;    // BGE
+                            3'b110: alu_control = `ALU_SLTU;   // BLTU
+                            3'b111: alu_control = `ALU_SLTU;   // BGEU
                             default: alu_control = 4'bzzzz;
                         endcase
                     end

@@ -27,10 +27,14 @@ module main_fsm (
     parameter MEM_ADDR = 4'b1000;
     parameter MEM_READ = 4'b1001;
     parameter MEM_WRITE = 4'b1010;
+    // TODO: Define the other states
 
     reg [3:0] state, next_state;
+    wire is_less_than;
+    wire is_less_than_unsigned;
 
-    // TODO: Define the other states
+    assign is_less_than           = ~zero;
+    assign is_less_than_unsigned  = ~zero;
 
     // State register
     always @(posedge clk or negedge rst) begin

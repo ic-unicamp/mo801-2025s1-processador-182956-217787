@@ -15,7 +15,6 @@ always @(posedge clk) begin
   if (we) begin
     mem[address[13:2]] = data_in;
   end
-  data_out = mem[address[13:2]];
 end
 
 

@@ -32,9 +32,11 @@ module tb_regdump();
   // Hierarchical paths
   wire        reg_write_from_dut;
   wire [4:0]  rd_from_dut;
+  wire [31:0] instruction_from_dut;
 
-  assign reg_write_from_dut = dut.dp.register_file_unit.write_enable_3;
-  assign rd_from_dut        = dut.dp.rd;                               
+  assign reg_write_from_dut   = dut.dp.register_file_unit.write_enable_3;
+  assign rd_from_dut          = dut.dp.rd;                               
+  assign instruction_from_dut = dut.dp.instr;
 
   // Registers within the testbench to latch control signals
   reg        reg_write_latched = 1'b0;
@@ -51,6 +53,9 @@ module tb_regdump();
           rd_latched        <= rd_from_dut;
       end
   end
+
+  // --- EBREAK Detection ---
+  parameter EBREAK = 32'h00100073; 
 
   // Simulation Control and File Handling
   initial begin
@@ -81,6 +86,21 @@ module tb_regdump();
 
   // Clock generator
   always #10 clk = ~clk; 
+
+  // Monitor for EBREAK instruction on the positive edge
+  always @(*) begin
+      if (resetn) begin
+          // Check the instruction currently held in the datapath's instruction register
+          // This assumes 'instruction_from_dut' reflects the instruction being decoded/executed
+          if (instruction_from_dut == EBREAK) begin
+              $display("[%0t] EBREAK instruction (0x%h) detected. Finishing simulation.", $time, EBREAK);
+              // Optional: Perform one last register dump before finishing?
+              // if (reg_write_latched && rd_latched != 5'b0) begin ... end // Dump if write occurred just before EBREAK
+              #1; // Allow potential final events in this timestep
+              $finish;
+          end
+      end
+  end
 
   always @(negedge clk) begin
     // Use the values latched on the *previous* posedge

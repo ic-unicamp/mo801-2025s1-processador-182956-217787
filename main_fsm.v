@@ -60,6 +60,7 @@ module main_fsm (
                     `OP_S_TYPE: next_state = MEM_ADDR;
                     `OP_B_TYPE: next_state = BEQ;
                     `OP_J_TYPE: next_state = JAL;
+                    default: next_state = FETCH; // Default to FETCH for unknown opcodes
                 endcase
             end
 

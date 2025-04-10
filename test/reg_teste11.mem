@@ -1,0 +1,4 @@
+00900228 // Invalid instruction
+00500293 // addi x5, x0, 5
+00528293 // addi x5, x5, 5
+00100073 // ebreak

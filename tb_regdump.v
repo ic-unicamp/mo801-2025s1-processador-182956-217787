@@ -81,7 +81,7 @@ module tb_regdump();
     $display("*** Starting Register Dump Simulation ***");
 
     // Set a timeout for the simulation
-    #200 $display("Simulation Timeout Reached."); $finish;
+  #20000 $display("Simulation Timeout Reached."); $finish;
   end
 
   // Clock generator

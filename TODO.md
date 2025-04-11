@@ -46,7 +46,7 @@
 - [x] `SW` – Store Word
 
 ### 🛠️ Upper Immediate Instructions
-- [ ] `LUI` – Load Upper Immediate
+- [x] `LUI` – Load Upper Immediate
 - [ ] `AUIPC` – Add Upper Immediate to PC
 
 ### 🧾 Environment Call

@@ -16,17 +16,18 @@ module main_fsm (
     output reg [1:0]  alu_op
 );
     // FSM State Definition
-    parameter FETCH   = 4'b0000;
-    parameter DECODE  = 4'b0001;
-    parameter JAL     = 4'b0010;
-    parameter ALU_WB  = 4'b0011;
-    parameter MEM_WB  = 4'b0100;
-    parameter BEQ     = 4'b0101;
+    parameter FETCH     = 4'b0000;
+    parameter DECODE    = 4'b0001;
+    parameter JAL       = 4'b0010;
+    parameter ALU_WB    = 4'b0011;
+    parameter MEM_WB    = 4'b0100;
+    parameter BEQ       = 4'b0101;
     parameter EXECUTE_I = 4'b0110;
     parameter EXECUTE_R = 4'b0111;
-    parameter MEM_ADDR = 4'b1000;
-    parameter MEM_READ = 4'b1001;
+    parameter MEM_ADDR  = 4'b1000;
+    parameter MEM_READ  = 4'b1001;
     parameter MEM_WRITE = 4'b1010;
+    parameter LUI       = 4'b1011; 
     // TODO: Define the other states
 
     reg [3:0] state, next_state;
@@ -60,6 +61,7 @@ module main_fsm (
                     `OP_S_TYPE: next_state = MEM_ADDR;
                     `OP_B_TYPE: next_state = BEQ;
                     `OP_J_TYPE: next_state = JAL;
+                    `OP_U_LUI:  next_state = LUI;
                     default: next_state = FETCH; // Default to FETCH for unknown opcodes
                 endcase
             end
@@ -84,6 +86,9 @@ module main_fsm (
             MEM_READ:
                 next_state = MEM_WB;
 
+            LUI:
+                next_state = ALU_WB;
+            
             MEM_WRITE:
                 next_state = FETCH;
                 
@@ -168,7 +173,11 @@ module main_fsm (
                 MemWrite = 1'b1;   // Enable memory write
             end
             
-            
+            LUI: begin
+                ALUSrcB = 2'b01;   // Select immediate for ALU input B
+                alu_op = 2'b10;     // ALU operation determined by opcode
+            end
+
             ALU_WB:  begin
                 ResultSrc = 2'b00; // Select ALU Out
                 RegWrite  = 1'b1;  // Enable register write

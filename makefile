@@ -121,7 +121,7 @@ run_integration: compile_integration | $(LOG_DIR) $(WAVE_DIR)
 		echo "Running integration test $$test_num..."; \
 		if [ ! -f test/teste$$test_num.mem ]; then echo "Missing test/teste$$test_num.mem"; exit 1; fi; \
 		cp test/teste$$test_num.mem memory.mem; \
-		$(VVP) $(BUILD_DIR)/tb.out > $(LOG_DIR)/integration_$$test_num.log 2>&1; \
+		$(VVP) $(BUILD_DIR)/tb.out | grep '===' > $(LOG_DIR)/integration_$$test_num.log 2>&1; \
 		if [ -f saida.vcd ]; then \
 			mv saida.vcd $(WAVE_DIR)/saida$$test_num.vcd; \
 		else \

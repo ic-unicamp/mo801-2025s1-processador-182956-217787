@@ -34,7 +34,8 @@ module datapath (
     wire [31:0] fread_data1, fread_data2;
     wire [31:0] alu_src_inst_a, alu_src_inst_b; 
     wire [4:0] rs1, rs2, rd;
-    
+
+    // Program counter
     flip_flop_enable pc_next_logic (
         .clk(clk),
         .rst(rst),
@@ -42,7 +43,8 @@ module datapath (
         .src(result),
         .dest(pc)
     );
-    
+
+    // Memory address mux
     mux2 memory_multiplexr (
         .select(adr_src),
         .src0(pc),
@@ -50,22 +52,30 @@ module datapath (
         .dest(mem_addr)
     );
 
-    flip_flop2_enable memory_flip_flop (
+    // Fetch stage: old_pc and instruc_reg
+    flip_flop_enable fetch_pc_ff (
         .clk(clk),
         .rst(rst),
         .enable(ir_write),
-        .src0(pc),
-        .src1(mem_read_data),
-        .dest0(old_pc),
-        .dest1(instruc_reg)
+        .src(pc),
+        .dest(old_pc)
     );
-    
+
+    flip_flop_enable fetch_ir_ff (
+        .clk(clk),
+        .rst(rst),
+        .enable(ir_write),
+        .src(mem_read_data),
+        .dest(instruc_reg)
+    );
+
     assign instr = instruc_reg;
 
     assign rs1 = instruc_reg[19:15];
     assign rs2 = instruc_reg[24:20];
     assign rd  = instruc_reg[11:7];
 
+    // Register file
     register_file register_file_unit (
         .clk(clk),
         .rst(rst),
@@ -78,24 +88,33 @@ module datapath (
         .rd2(read_data2)
     );
 
+    // Immediate generator
     imm_extend imm_extend_unit (
         .instruction(instruc_reg),
         .imm_selection(imm_src),
         .imm_extended(imm_extended)
     );
 
-    flip_flop2_enable register_file_flip_flop (
+    // Latch register file outputs
+    flip_flop_enable regfile_rd1_ff (
         .clk(clk),
         .rst(rst),
         .enable(1'b1),
-        .src0(read_data1),
-        .src1(read_data2),
-        .dest0(fread_data1),
-        .dest1(fread_data2)
+        .src(read_data1),
+        .dest(fread_data1)
     );
-    
+
+    flip_flop_enable regfile_rd2_ff (
+        .clk(clk),
+        .rst(rst),
+        .enable(1'b1),
+        .src(read_data2),
+        .dest(fread_data2)
+    );
+
     assign mem_write_data = fread_data2;
 
+    // ALU source muxes
     mux3 mux3_alu_src_a (
         .select(alu_src_a),
         .src0(pc),
@@ -108,10 +127,11 @@ module datapath (
         .select(alu_src_b),
         .src0(fread_data2),
         .src1(imm_extended),
-        .src2(32'b0100),  
+        .src2(32'd4),
         .dest(alu_src_inst_b)
     );
 
+    // ALU unit
     alu alu_unit (
         .a(alu_src_inst_a),
         .b(alu_src_inst_b),
@@ -120,22 +140,24 @@ module datapath (
         .zero(zero)
     );
 
+    // Latch ALU and memory read results
     flip_flop_enable alu_output_ff (
         .clk(clk),
         .rst(rst),
-        .enable(1'b1),  
+        .enable(1'b1),
         .src(alu_result),
         .dest(alu_out)
     );
-    
+
     flip_flop_enable mem_save_ff (
         .clk(clk),
         .rst(rst),
-        .enable(1'b1),  
+        .enable(1'b1),
         .src(mem_read_data),
         .dest(data_to_save)
     );
 
+    // Result mux
     mux3 las_mux3 (
         .select(result_src),
         .src0(alu_out),
@@ -143,5 +165,5 @@ module datapath (
         .src2(alu_result),
         .dest(result)
     );
-    
+
 endmodule

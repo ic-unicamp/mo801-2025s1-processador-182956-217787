@@ -107,10 +107,7 @@ module tb_regdump();
     if (resetn && reg_write_latched && rd_latched != 5'b0) begin
         $display("Time %0t: Writing to R%0d", $time, rd_latched);
         $fdisplay(dump_file, "Write to R%0d", rd_latched); // Use latched rd
-        for (i = 0; i < 32; i = i + 1) begin
-            // Read the register file *now* (at negedge)
-            $fdisplay(dump_file, "R%0d: 0x%08h", i, dut.dp.register_file_unit.register[i]);
-        end
+        $fdisplay(dump_file, "R%0d: 0x%08h", rd_latched, dut.dp.register_file_unit.register[rd_latched]);
         $fdisplay(dump_file, "===");
         $fflush(dump_file);
     end

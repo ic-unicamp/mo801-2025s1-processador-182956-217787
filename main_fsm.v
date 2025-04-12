@@ -29,6 +29,8 @@ module main_fsm (
     parameter MEM_WRITE = 4'b1010;
     parameter LUI       = 4'b1011; 
     parameter AUIPC     = 4'b1100;
+    parameter JALR      = 4'b1101;
+    parameter UPDATE_PC   = 4'b1110;
     // TODO: Define the other states
 
     reg [3:0] state, next_state;
@@ -50,7 +52,7 @@ module main_fsm (
     // Next state logic
     always @(*) begin
         case (state)
-            FETCH: 
+            FETCH:
                 next_state = DECODE;
             
             DECODE: begin
@@ -62,6 +64,7 @@ module main_fsm (
                     `OP_S_TYPE: next_state = MEM_ADDR;
                     `OP_B_TYPE: next_state = BEQ;
                     `OP_J_TYPE: next_state = JAL;
+                    `OP_I_JALR: next_state = JALR;
                     `OP_U_LUI:  next_state = LUI;
                     `OP_U_AUIPC: next_state = AUIPC;
                     default: next_state = FETCH; // Default to FETCH for unknown opcodes
@@ -76,8 +79,14 @@ module main_fsm (
                 next_state = ALU_WB;
 
             JAL:
-                next_state = ALU_WB;
-            
+                next_state = UPDATE_PC;
+
+            JALR:
+                next_state = UPDATE_PC;
+
+            UPDATE_PC:
+                next_state = FETCH;
+
             MEM_ADDR: begin
                 if (opcode == `OP_S_TYPE)
                     next_state = MEM_WRITE;
@@ -135,9 +144,17 @@ module main_fsm (
             end
             
             DECODE: begin
-                ALUSrcA  = 2'b01;  // Select old PC for ALU input A
-                ALUSrcB  = 2'b01;  // Select immediate for ALU input B
-                alu_op   = 2'b00;
+                if (opcode == `OP_I_JALR || opcode == `OP_J_TYPE) begin
+                    ALUSrcA  = 2'b01;  // Select old PC for ALU input A
+                    ALUSrcB  = 2'b10;  // Select 4 for ALU input B
+                    ResultSrc = 2'b00; // Select ALU Out
+                    RegWrite  = 1'b1;  // Enable register write
+                    alu_op   = 2'b00;  // Add operation
+                end else begin
+                    ALUSrcA  = 2'b01;  // Select old PC for ALU input A
+                    ALUSrcB  = 2'b01;  // Select immediate for ALU input B
+                    alu_op   = 2'b00;
+                end
             end
             
             EXECUTE_R: begin
@@ -154,9 +171,21 @@ module main_fsm (
 
             JAL: begin
                 ALUSrcA = 2'b01;   // Select old PC for ALU input A
-                ALUSrcB = 2'b10;   // Select immediate for ALU input B
-                alu_op = 2'b10;     // Special operation (JAL)
+                ALUSrcB = 2'b01;   // Select immediate for ALU input B
+                alu_op = 2'b10;    // Special operation (JAL)
                 ResultSrc = 2'b00; // Select ALU Out for link address
+                PCWrite = 1'b1;    // Enable PC write
+            end
+
+            JALR: begin
+                ALUSrcA = 2'b10;   // Select register file for ALU input A
+                ALUSrcB = 2'b01;   // Select immediate for ALU input B
+                alu_op = 2'b10;    // Special operation (JAL)
+                ResultSrc = 2'b00; // Select ALU Out for link address
+                PCWrite = 1'b1;    // Enable PC write
+            end
+
+            UPDATE_PC: begin
                 PCWrite = 1'b1;    // Enable PC write
             end
 

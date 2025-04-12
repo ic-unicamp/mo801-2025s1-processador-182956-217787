@@ -27,7 +27,7 @@
 
 ### 🧠 Control Transfer Instructions
 - [x] `JAL` – Jump and Link
-- [ ] `JALR` – Jump and Link Register
+- [x] `JALR` – Jump and Link Register
 - [x] `BEQ` – Branch if Equal
 - [x] `BNE` – Branch if Not Equal
 - [ ] `BLT` – Branch if Less Than

@@ -31,7 +31,6 @@ module main_fsm (
     parameter MEM_ADDR  = 4'b1000;
     parameter MEM_READ  = 4'b1001;
     parameter MEM_WRITE = 4'b1010;
-    parameter LUI       = 4'b1011; 
     parameter AUIPC     = 4'b1100;
     parameter JALR      = 4'b1101;
     parameter UPDATE_PC   = 4'b1110;

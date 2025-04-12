@@ -19,7 +19,11 @@ module datapath (
 
     // Control ports
     output [31:0] instr,
-    output zero
+    output zero,
+    output blt,
+    output bge,
+    output bltu,
+    output bgeu
 );
 
     // Internal wires and registers
@@ -134,7 +138,11 @@ module datapath (
         .b(alu_src_inst_b),
         .alu_control(alu_control),
         .result(alu_result),
-        .zero(zero)
+        .zero(zero),
+        .blt(blt),
+        .bge(bge),
+        .bltu(bltu),
+        .bgeu(bgeu)
     );
 
     // ALU Output Register

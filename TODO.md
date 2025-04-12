@@ -26,12 +26,12 @@
 - [x] `ANDI` – AND Immediate
 
 ### 🧠 Control Transfer Instructions
-- [ ] `JAL` – Jump and Link
-- [ ] `JALR` – Jump and Link Register
+- [x] `JAL` – Jump and Link
+- [x] `JALR` – Jump and Link Register
 - [x] `BEQ` – Branch if Equal
 - [x] `BNE` – Branch if Not Equal
-- [ ] `BLT` – Branch if Less Than
-- [ ] `BGE` – Branch if Greater Than or Equal
+- [x] `BLT` – Branch if Less Than
+- [x] `BGE` – Branch if Greater Than or Equal
 - [ ] `BLTU` – Branch if Less Than Unsigned
 - [ ] `BGEU` – Branch if Greater Than or Equal Unsigned
 
@@ -47,8 +47,8 @@
 
 ### 🛠️ Upper Immediate Instructions
 - [x] `LUI` – Load Upper Immediate
-- [ ] `AUIPC` – Add Upper Immediate to PC
+- [x] `AUIPC` – Add Upper Immediate to PC
 
-### 🧾 Environment Call
+### 🧾 Environment Call (Not supported)
 - [ ] `ECALL` – Environment Call (used for system calls)
-- [ ] `EBREAK`- Environment Break
+- [] `EBREAK`- Environment Break

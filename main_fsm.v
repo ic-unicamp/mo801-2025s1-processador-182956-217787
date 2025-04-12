@@ -5,6 +5,10 @@ module main_fsm (
     input      [2:0]  funct3,
     input      [6:0]  funct7,
     input             zero,
+    input             bge,
+    input             blt,
+    input             bgeu,
+    input             bltu,
     output reg        PCWrite,
     output reg        AdrSrc,
     output reg        MemWrite,
@@ -21,13 +25,16 @@ module main_fsm (
     parameter JAL       = 4'b0010;
     parameter ALU_WB    = 4'b0011;
     parameter MEM_WB    = 4'b0100;
-    parameter BEQ       = 4'b0101;
+    parameter BRANCH    = 4'b0101;
     parameter EXECUTE_I = 4'b0110;
     parameter EXECUTE_R = 4'b0111;
     parameter MEM_ADDR  = 4'b1000;
     parameter MEM_READ  = 4'b1001;
     parameter MEM_WRITE = 4'b1010;
     parameter LUI       = 4'b1011; 
+    parameter AUIPC     = 4'b1100;
+    parameter JALR      = 4'b1101;
+    parameter UPDATE_PC   = 4'b1110;
     // TODO: Define the other states
 
     reg [3:0] state, next_state;
@@ -49,7 +56,7 @@ module main_fsm (
     // Next state logic
     always @(*) begin
         case (state)
-            FETCH: 
+            FETCH:
                 next_state = DECODE;
             
             DECODE: begin
@@ -59,9 +66,11 @@ module main_fsm (
                     `OP_I_TYPE: next_state = EXECUTE_I;
                     `OP_I_LOAD: next_state = MEM_ADDR;
                     `OP_S_TYPE: next_state = MEM_ADDR;
-                    `OP_B_TYPE: next_state = BEQ;
+                    `OP_B_TYPE: next_state = BRANCH;
                     `OP_J_TYPE: next_state = JAL;
+                    `OP_I_JALR: next_state = JALR;
                     `OP_U_LUI:  next_state = EXECUTE_I;
+                    `OP_U_AUIPC: next_state = AUIPC;
                     default: next_state = FETCH; // Default to FETCH for unknown opcodes
                 endcase
             end
@@ -74,8 +83,14 @@ module main_fsm (
                 next_state = ALU_WB;
 
             JAL:
-                next_state = ALU_WB;
-            
+                next_state = UPDATE_PC;
+
+            JALR:
+                next_state = UPDATE_PC;
+
+            UPDATE_PC:
+                next_state = FETCH;
+
             MEM_ADDR: begin
                 if (opcode == `OP_S_TYPE)
                     next_state = MEM_WRITE;
@@ -85,14 +100,15 @@ module main_fsm (
 
             MEM_READ:
                 next_state = MEM_WB;
-
+            AUIPC:
+                next_state = ALU_WB;
             MEM_WRITE:
                 next_state = FETCH;
                 
             ALU_WB:
                 next_state = FETCH;
             
-            BEQ:
+            BRANCH:
                 next_state = FETCH;
             
             MEM_WB:
@@ -127,9 +143,17 @@ module main_fsm (
             end
             
             DECODE: begin
-                ALUSrcA  = 2'b01;  // Select old PC for ALU input A
-                ALUSrcB  = 2'b01;  // Select immediate for ALU input B
-                alu_op   = 2'b00;
+                if (opcode == `OP_I_JALR || opcode == `OP_J_TYPE) begin
+                    ALUSrcA  = 2'b01;  // Select old PC for ALU input A
+                    ALUSrcB  = 2'b10;  // Select 4 for ALU input B
+                    ResultSrc = 2'b00; // Select ALU Out
+                    RegWrite  = 1'b1;  // Enable register write
+                    alu_op   = 2'b00;  // Add operation
+                end else begin
+                    ALUSrcA  = 2'b01;  // Select old PC for ALU input A
+                    ALUSrcB  = 2'b01;  // Select immediate for ALU input B
+                    alu_op   = 2'b00;
+                end
             end
             
             EXECUTE_R: begin
@@ -145,12 +169,23 @@ module main_fsm (
             end
 
             JAL: begin
-                ALUSrcA  = 2'b01;  // Select old PC for ALU input A
-                ALUSrcB  = 2'b01;  // Select immediate for ALU input B
+                ALUSrcA = 2'b01;   // Select old PC for ALU input A
+                ALUSrcB = 2'b01;   // Select immediate for ALU input B
+                alu_op = 2'b10;    // Special operation (JAL)
                 ResultSrc = 2'b00; // Select ALU Out for link address
-                PCWrite  = 1'b1;   // Enable PC write
-                RegWrite = 1'b1;   // Enable register write for link address
-                alu_op = 2'b00;
+                PCWrite = 1'b1;    // Enable PC write
+            end
+
+            JALR: begin
+                ALUSrcA = 2'b10;   // Select register file for ALU input A
+                ALUSrcB = 2'b01;   // Select immediate for ALU input B
+                alu_op = 2'b10;    // Special operation (JAL)
+                ResultSrc = 2'b00; // Select ALU Out for link address
+                PCWrite = 1'b1;    // Enable PC write
+            end
+
+            UPDATE_PC: begin
+                PCWrite = 1'b1;    // Enable PC write
             end
 
             MEM_ADDR: begin
@@ -169,21 +204,44 @@ module main_fsm (
                 AdrSrc = 1'b1;     // Use ALU result as memory address
                 MemWrite = 1'b1;   // Enable memory write
             end
-            
+            AUIPC: begin
+                ALUSrcA = 2'b01;   // Select immediate for ALU input B
+                ALUSrcB = 2'b01;   // Select immediate for ALU input B
+                alu_op = 2'b10;    // Special operation (LUI)
+            end
             ALU_WB:  begin
                 ResultSrc = 2'b00; // Select ALU Out
                 RegWrite  = 1'b1;  // Enable register write
             end
 
-            BEQ: begin
+            BRANCH: begin
                 ALUSrcA  = 2'b10;  // Select register data for ALU input A
                 ALUSrcB  = 2'b00;  // Select register data for ALU input B
                 ResultSrc = 2'b00; // Select Memory Data
                 alu_op   = 2'b01;
-                if (zero && funct3 == 3'b000) // beq
-                    PCWrite = 1'b1; // Enable PC write if branch taken
-                if (~zero && funct3 == 3'b001) // bne
-                    PCWrite = 1'b1;
+                case (funct3)
+                    3'b000: begin // BEQ
+                        PCWrite = zero ? 1'b1 : 1'b0;
+                    end
+                    3'b001: begin // BNE
+                        PCWrite = ~zero ? 1'b1 : 1'b0;
+                    end
+                    3'b100: begin // BLT (signed)
+                        PCWrite = blt ? 1'b1 : 1'b0;
+                    end
+                    3'b101: begin // BGE (signed)
+                        PCWrite = bge ? 1'b1 : 1'b0;
+                    end
+                    3'b110: begin // BLTU (unsigned)
+                        PCWrite = bltu ? 1'b1 : 1'b0;
+                    end
+                    3'b111: begin // BGEU (unsigned)
+                        PCWrite = bgeu ? 1'b1 : 1'b0;
+                    end
+                    default: begin
+                        PCWrite = 1'b0; // Invalid funct3
+                    end
+                endcase
             end
 
             MEM_WB: begin

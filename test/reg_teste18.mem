@@ -1,0 +1,6 @@
+00500093    // addi x1, x0, 5
+00a00113    // addi x2, x0, 10
+00114663    // blt x2, x1, function
+00a10113    // addi x2, x2, 10
+00100073    // ebreak
+03210113    // addi x2, x2, 50

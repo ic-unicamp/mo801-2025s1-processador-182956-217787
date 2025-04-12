@@ -1,0 +1,30 @@
+Write to R5
+R5: 0x00000000
+===
+Write to R6
+R6: 0x00000003
+===
+Write to R5
+R5: 0x00000001
+===
+Write to R5
+R5: 0x00000002
+===
+Write to R5
+R5: 0x00000003
+===
+Write to R5
+R5: 0x00000000
+===
+Write to R6
+R6: 0x00000003
+===
+Write to R5
+R5: 0x00000001
+===
+Write to R5
+R5: 0x00000002
+===
+Write to R5
+R5: 0x00000003
+===

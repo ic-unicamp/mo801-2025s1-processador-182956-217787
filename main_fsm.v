@@ -153,12 +153,11 @@ module main_fsm (
             end
 
             JAL: begin
-                ALUSrcA  = 2'b01;  // Select old PC for ALU input A
-                ALUSrcB  = 2'b01;  // Select immediate for ALU input B
+                ALUSrcA = 2'b01;   // Select old PC for ALU input A
+                ALUSrcB = 2'b10;   // Select immediate for ALU input B
+                alu_op = 2'b10;     // Special operation (JAL)
                 ResultSrc = 2'b00; // Select ALU Out for link address
-                PCWrite  = 1'b1;   // Enable PC write
-                RegWrite = 1'b1;   // Enable register write for link address
-                alu_op = 2'b00;
+                PCWrite = 1'b1;    // Enable PC write
             end
 
             MEM_ADDR: begin

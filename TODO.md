@@ -26,7 +26,7 @@
 - [x] `ANDI` – AND Immediate
 
 ### 🧠 Control Transfer Instructions
-- [ ] `JAL` – Jump and Link
+- [x] `JAL` – Jump and Link
 - [ ] `JALR` – Jump and Link Register
 - [x] `BEQ` – Branch if Equal
 - [x] `BNE` – Branch if Not Equal
@@ -47,8 +47,8 @@
 
 ### 🛠️ Upper Immediate Instructions
 - [x] `LUI` – Load Upper Immediate
-- [ ] `AUIPC` – Add Upper Immediate to PC
+- [x] `AUIPC` – Add Upper Immediate to PC
 
-### 🧾 Environment Call
+### 🧾 Environment Call (Not supported)
 - [ ] `ECALL` – Environment Call (used for system calls)
-- [ ] `EBREAK`- Environment Break
+- [] `EBREAK`- Environment Break

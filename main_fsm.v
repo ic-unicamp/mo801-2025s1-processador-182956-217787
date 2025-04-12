@@ -61,7 +61,7 @@ module main_fsm (
                     `OP_S_TYPE: next_state = MEM_ADDR;
                     `OP_B_TYPE: next_state = BEQ;
                     `OP_J_TYPE: next_state = JAL;
-                    `OP_U_LUI:  next_state = LUI;
+                    `OP_U_LUI:  next_state = EXECUTE_I;
                     default: next_state = FETCH; // Default to FETCH for unknown opcodes
                 endcase
             end
@@ -86,9 +86,6 @@ module main_fsm (
             MEM_READ:
                 next_state = MEM_WB;
 
-            LUI:
-                next_state = ALU_WB;
-            
             MEM_WRITE:
                 next_state = FETCH;
                 
@@ -173,11 +170,6 @@ module main_fsm (
                 MemWrite = 1'b1;   // Enable memory write
             end
             
-            LUI: begin
-                ALUSrcB = 2'b01;   // Select immediate for ALU input B
-                alu_op = 2'b10;     // ALU operation determined by opcode
-            end
-
             ALU_WB:  begin
                 ResultSrc = 2'b00; // Select ALU Out
                 RegWrite  = 1'b1;  // Enable register write

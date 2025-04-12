@@ -30,8 +30,8 @@
 - [x] `JALR` – Jump and Link Register
 - [x] `BEQ` – Branch if Equal
 - [x] `BNE` – Branch if Not Equal
-- [ ] `BLT` – Branch if Less Than
-- [ ] `BGE` – Branch if Greater Than or Equal
+- [x] `BLT` – Branch if Less Than
+- [x] `BGE` – Branch if Greater Than or Equal
 - [ ] `BLTU` – Branch if Less Than Unsigned
 - [ ] `BGEU` – Branch if Greater Than or Equal Unsigned
 

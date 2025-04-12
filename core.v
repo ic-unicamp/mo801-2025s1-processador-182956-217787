@@ -9,8 +9,12 @@ module core( // Core module
 
   // Internal signals
   wire [31:0] instr; 
-  wire zero;                  // Zero flag from ALU
-  
+  wire zero;
+  wire blt;
+  wire bge;
+  wire bltu;
+  wire bgeu;
+
   // Control signals
   wire pc_write;
   wire adr_src;
@@ -50,7 +54,11 @@ module core( // Core module
     
     // Control interconnect
     .instr(instr),
-    .zero(zero)
+    .zero(zero),
+    .bge(bge),
+    .blt(blt),
+    .bgeu(bgeu),
+    .bltu(bltu)
   );
   
   control ctrl (
@@ -60,6 +68,10 @@ module core( // Core module
     // Signal from the Datapath
     .instr(instr),
     .zero(zero),
+    .bge(bge),
+    .blt(blt),
+    .bgeu(bgeu),
+    .bltu(bltu),
     
     // Control signals
     .PCWrite(pc_write),

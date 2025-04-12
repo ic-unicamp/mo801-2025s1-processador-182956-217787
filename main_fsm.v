@@ -5,6 +5,10 @@ module main_fsm (
     input      [2:0]  funct3,
     input      [6:0]  funct7,
     input             zero,
+    input             bge,
+    input             blt,
+    input             bgeu,
+    input             bltu,
     output reg        PCWrite,
     output reg        AdrSrc,
     output reg        MemWrite,
@@ -21,7 +25,7 @@ module main_fsm (
     parameter JAL       = 4'b0010;
     parameter ALU_WB    = 4'b0011;
     parameter MEM_WB    = 4'b0100;
-    parameter BEQ       = 4'b0101;
+    parameter BRANCH    = 4'b0101;
     parameter EXECUTE_I = 4'b0110;
     parameter EXECUTE_R = 4'b0111;
     parameter MEM_ADDR  = 4'b1000;
@@ -62,7 +66,7 @@ module main_fsm (
                     `OP_I_TYPE: next_state = EXECUTE_I;
                     `OP_I_LOAD: next_state = MEM_ADDR;
                     `OP_S_TYPE: next_state = MEM_ADDR;
-                    `OP_B_TYPE: next_state = BEQ;
+                    `OP_B_TYPE: next_state = BRANCH;
                     `OP_J_TYPE: next_state = JAL;
                     `OP_I_JALR: next_state = JALR;
                     `OP_U_LUI:  next_state = LUI;
@@ -109,7 +113,7 @@ module main_fsm (
             ALU_WB:
                 next_state = FETCH;
             
-            BEQ:
+            BRANCH:
                 next_state = FETCH;
             
             MEM_WB:
@@ -222,15 +226,34 @@ module main_fsm (
                 RegWrite  = 1'b1;  // Enable register write
             end
 
-            BEQ: begin
+            BRANCH: begin
                 ALUSrcA  = 2'b10;  // Select register data for ALU input A
                 ALUSrcB  = 2'b00;  // Select register data for ALU input B
                 ResultSrc = 2'b00; // Select Memory Data
                 alu_op   = 2'b01;
-                if (zero && funct3 == 3'b000) // beq
-                    PCWrite = 1'b1; // Enable PC write if branch taken
-                if (~zero && funct3 == 3'b001) // bne
-                    PCWrite = 1'b1;
+                case (funct3)
+                    3'b000: begin // BEQ
+                        PCWrite = zero ? 1'b1 : 1'b0;
+                    end
+                    3'b001: begin // BNE
+                        PCWrite = ~zero ? 1'b1 : 1'b0;
+                    end
+                    3'b100: begin // BLT (signed)
+                        PCWrite = blt ? 1'b1 : 1'b0;
+                    end
+                    3'b101: begin // BGE (signed)
+                        PCWrite = bge ? 1'b1 : 1'b0;
+                    end
+                    3'b110: begin // BLTU (unsigned)
+                        PCWrite = bltu ? 1'b1 : 1'b0;
+                    end
+                    3'b111: begin // BGEU (unsigned)
+                        PCWrite = bgeu ? 1'b1 : 1'b0;
+                    end
+                    default: begin
+                        PCWrite = 1'b0; // Invalid funct3
+                    end
+                endcase
             end
 
             MEM_WB: begin

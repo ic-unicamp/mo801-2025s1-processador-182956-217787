@@ -28,6 +28,7 @@ module main_fsm (
     parameter MEM_READ  = 4'b1001;
     parameter MEM_WRITE = 4'b1010;
     parameter LUI       = 4'b1011; 
+    parameter AUIPC     = 4'b1100;
     // TODO: Define the other states
 
     reg [3:0] state, next_state;
@@ -62,6 +63,7 @@ module main_fsm (
                     `OP_B_TYPE: next_state = BEQ;
                     `OP_J_TYPE: next_state = JAL;
                     `OP_U_LUI:  next_state = LUI;
+                    `OP_U_AUIPC: next_state = AUIPC;
                     default: next_state = FETCH; // Default to FETCH for unknown opcodes
                 endcase
             end
@@ -85,6 +87,9 @@ module main_fsm (
 
             MEM_READ:
                 next_state = MEM_WB;
+
+            AUIPC:
+                next_state = ALU_WB;
 
             LUI:
                 next_state = ALU_WB;
@@ -173,6 +178,12 @@ module main_fsm (
                 MemWrite = 1'b1;   // Enable memory write
             end
             
+            AUIPC: begin
+                ALUSrcA = 2'b01;   // Select immediate for ALU input B
+                ALUSrcB = 2'b01;   // Select immediate for ALU input B
+                alu_op = 2'b10;    // Special operation (LUI)
+            end
+
             LUI: begin
                 ALUSrcB = 2'b01;   // Select immediate for ALU input B
                 alu_op = 2'b10;     // ALU operation determined by opcode

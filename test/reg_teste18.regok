@@ -1,0 +1,9 @@
+Write to R1
+R1: 0x00000005
+===
+Write to R2
+R2: 0x0000000a
+===
+Write to R2
+R2: 0x00000014
+===

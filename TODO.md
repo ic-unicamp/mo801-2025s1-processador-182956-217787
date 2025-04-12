@@ -32,8 +32,8 @@
 - [x] `BNE` – Branch if Not Equal
 - [x] `BLT` – Branch if Less Than
 - [x] `BGE` – Branch if Greater Than or Equal
-- [ ] `BLTU` – Branch if Less Than Unsigned
-- [ ] `BGEU` – Branch if Greater Than or Equal Unsigned
+- [x] `BLTU` – Branch if Less Than Unsigned
+- [x] `BGEU` – Branch if Greater Than or Equal Unsigned
 
 ### 💾 Memory Instructions
 - [ ] `LB` – Load Byte

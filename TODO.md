@@ -3,6 +3,7 @@
 ## RV32UI Supported Instructions
 
 ### 🧮 Arithmetic Instructions (R-Type)
+
 - [x] `ADD` – Add
 - [x] `SUB` – Subtract
 - [x] `SLL` – Shift Left Logical
@@ -15,6 +16,7 @@
 - [x] `AND` – Bitwise AND
 
 ### 📥 Immediate Arithmetic Instructions (I-Type)
+
 - [x] `ADDI` – Add Immediate
 - [x] `SLLI` – Shift Left Logical Immediate
 - [x] `SLTI` – Set Less Than Immediate
@@ -26,29 +28,33 @@
 - [x] `ANDI` – AND Immediate
 
 ### 🧠 Control Transfer Instructions
-- [x] `JAL` – Jump and Link
-- [x] `JALR` – Jump and Link Register
-- [x] `BEQ` – Branch if Equal
-- [x] `BNE` – Branch if Not Equal
-- [x] `BLT` – Branch if Less Than
-- [x] `BGE` – Branch if Greater Than or Equal
-- [x] `BLTU` – Branch if Less Than Unsigned
-- [x] `BGEU` – Branch if Greater Than or Equal Unsigned
+
+- [?] `JAL` – Jump and Link
+- [?] `JALR` – Jump and Link Register
+- [?] `BEQ` – Branch if Equal
+- [?] `BNE` – Branch if Not Equal
+- [?] `BLT` – Branch if Less Than
+- [?] `BGE` – Branch if Greater Than or Equal
+- [?] `BLTU` – Branch if Less Than Unsigned
+- [?] `BGEU` – Branch if Greater Than or Equal Unsigned
 
 ### 💾 Memory Instructions
-- [ ] `LB` – Load Byte
-- [ ] `LH` – Load Halfword
+
+- [?] `LB` – Load Byte
+- [?] `LH` – Load Halfword
 - [x] `LW` – Load Word
-- [ ] `LBU` – Load Byte Unsigned
-- [ ] `LHU` – Load Halfword Unsigned
+- [?] `LBU` – Load Byte Unsigned
+- [?] `LHU` – Load Halfword Unsigned
 - [ ] `SB` – Store Byte
 - [ ] `SH` – Store Halfword
 - [x] `SW` – Store Word
 
 ### 🛠️ Upper Immediate Instructions
+
 - [x] `LUI` – Load Upper Immediate
 - [x] `AUIPC` – Add Upper Immediate to PC
 
 ### 🧾 Environment Call (Not supported)
+
 - [ ] `ECALL` – Environment Call (used for system calls)
 - [] `EBREAK`- Environment Break

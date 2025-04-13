@@ -102,8 +102,9 @@ module main_fsm (
                 next_state = MEM_WB;
 
             MEM_WRITE:
-                next_state = MEM_WRITE_FIN;
+                next_state = FETCH;
             
+            // TODO: Decide if we will use this extra state or modify memory.v
             MEM_WRITE_FIN:
                next_state = FETCH; 
                 

@@ -152,6 +152,9 @@ module main_fsm (
                     ResultSrc = 2'b00; // Select ALU Out
                     RegWrite  = 1'b1;  // Enable register write
                     alu_op    = 2'b00; // Add operation
+                    // TODO: Think about this, if we are already writing PC + 4 (which is in ALUOut)
+                    //       to rd, why are we calculating PC + 4 again?
+                    //       Maybe we should just use the ALUOut value
                 end else begin
                     ALUSrcA  = 2'b01;  // Select old PC for ALU input A
                     ALUSrcB  = 2'b01;  // Select immediate for ALU input B
@@ -177,6 +180,7 @@ module main_fsm (
                 alu_op    = 2'b10; // Special operation (JAL)
                 ResultSrc = 2'b00; // Select ALU Out for link address
                 PCWrite   = 1'b1;  // Enable PC write
+                                    // TODO: Check if this is needed
             end
 
             JALR: begin
@@ -185,8 +189,10 @@ module main_fsm (
                 alu_op    = 2'b10; // Special operation (JAL)
                 ResultSrc = 2'b00; // Select ALU Out for link address
                 PCWrite   = 1'b1;  // Enable PC write
+                                    // TODO: Check if this is needed
             end
 
+            // TODO: Check if this is needed
             UPDATE_PC: begin
                 PCWrite = 1'b1;  // Enable PC write
             end
@@ -236,10 +242,11 @@ module main_fsm (
                 RegWrite  = 1'b1;  // Enable register write
             end
 
+            // TODO: Check if it's correct
             BRANCH: begin
                 ALUSrcA   = 2'b10;  // Select register data for ALU input A
                 ALUSrcB   = 2'b00;  // Select register data for ALU input B
-                ResultSrc = 2'b00;  // Select Memory Data
+                ResultSrc = 2'b00;  // Select Memory Data TODO: This comment seems incorrect
                 alu_op    = 2'b01;
                 case (funct3)
                     3'b000: begin // BEQ

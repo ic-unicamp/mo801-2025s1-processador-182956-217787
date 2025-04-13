@@ -1,0 +1,48 @@
+Write to R1
+R1: 0x00000000
+===
+Write to R2
+R2: 0xdeadc000
+===
+Write to R2
+R2: 0xdeadbeff
+===
+Write to R3
+R3: 0xdeadbeff
+===
+Write to R3
+R3: 0xffffbeff
+===
+Write to R3
+R3: 0xffffdead
+===
+Write to R3
+R3: 0x0000beff
+===
+Write to R3
+R3: 0x0000dead
+===
+Write to R3
+R3: 0xffffffff
+===
+Write to R3
+R3: 0xffffffbe
+===
+Write to R3
+R3: 0xffffffad
+===
+Write to R3
+R3: 0xffffffde
+===
+Write to R3
+R3: 0x000000ff
+===
+Write to R3
+R3: 0x000000be
+===
+Write to R3
+R3: 0x000000ad
+===
+Write to R3
+R3: 0x000000de
+===

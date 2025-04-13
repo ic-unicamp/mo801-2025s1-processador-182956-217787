@@ -1,0 +1,18 @@
+00000093 // addi x1, x0, 0x0    // monta o endereço
+deadc137 // lui  x2, 0xdeadc    // instrução para testar
+eff10113 // addi x2, x0, -257   // x2 = deabeff
+0020a023 // sw   x2, 0(x1)      
+0000a183 // lw   x3. 0(x1)
+00009183 // lh   x3, 0(x1)
+00209183 // lh   x3, 2(x1)
+0000d183 // lhu  x3, 0(x1)
+0020d183 // lhu  x3, 2(x1)
+00008183 // lb   x3, 0(x1)
+00108183 // lb   x3, 1(x1)
+00208183 // lb   x3, 2(x1)
+00308183 // lb   x3, 3(x1)
+0000c183 // lbu  x3, 0(x1)
+0010c183 // lbu  x3, 1(x1)
+0020c183 // lbu  x3, 2(x1)
+0030c183 // lbu  x3, 3(x1)
+00100073 // ebreak

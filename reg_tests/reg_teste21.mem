@@ -1,18 +1,25 @@
 00000093 // addi x1, x0, 0x0    // monta o endereço
 deadc137 // lui  x2, 0xdeadc    // instrução para testar
-eff10113 // addi x2, x0, -257   // x2 = deabeff
-0020a023 // sw   x2, 0(x1)      
-0000a183 // lw   x3. 0(x1)
-00009183 // lh   x3, 0(x1)
-00209183 // lh   x3, 2(x1)
-0000d183 // lhu  x3, 0(x1)
-0020d183 // lhu  x3, 2(x1)
-00008183 // lb   x3, 0(x1)
-00108183 // lb   x3, 1(x1)
-00208183 // lb   x3, 2(x1)
-00308183 // lb   x3, 3(x1)
-0000c183 // lbu  x3, 0(x1)
-0010c183 // lbu  x3, 1(x1)
-0020c183 // lbu  x3, 2(x1)
-0030c183 // lbu  x3, 3(x1)
+eff10113 // addi x2, x0, -257   // x2 = 0xdeabeff
+112232b7 // lui  x5, 0x11223
+34428293 // addi x5, x5, 0x344  // x5 = 0x11223344
+0020a023 // sw   x2, 0(x1)      // MEM[x1] = 0xdeadbeef
+0000a183 // lw   x3. 0(x1)      // x3 = 0xdeadbeef
+00509023 // sh   x5, 0(x1)      // MEM[x1] = 0xdead3344
+0000a183 // lw   x3, 0(x1)      // x3 = 0xdead3344
+0000d183 // lhu  x3, 0(x1)      // x3 = 0x00003344
+002081a3 // sb   x2, 3(x1)      // MEM[x1] = 0xffad3344
+0000a183 // lw   x3, 0(x1)      // x3 = 0xffad3344
+00009183 // lh   x3, 0(x1)      // x3 = 0x00003344
+00209183 // lh   x3, 2(x1)      // x3 = 0xffffffad
+0000d183 // lhu  x3, 0(x1)      // x3 = 0x00003344
+0020d183 // lhu  x3, 2(x1)      // x3 = 0x0000ffad
+00008183 // lb   x3, 0(x1)      // x3 = 0x00000044
+00108183 // lb   x3, 1(x1)      // x3 = 0x00000033
+00208183 // lb   x3, 2(x1)      // x3 = 0xffffffad
+00308183 // lb   x3, 3(x1)      // x3 = 0xffffffff
+0000c183 // lbu  x3, 0(x1)      // x3 = 0x00000044
+0010c183 // lbu  x3, 1(x1)      // x3 = 0x00000033
+0020c183 // lbu  x3, 2(x1)      // x3 = 0x000000ad
+0030c183 // lbu  x3, 3(x1)      // x3 = 0x000000ff
 00100073 // ebreak

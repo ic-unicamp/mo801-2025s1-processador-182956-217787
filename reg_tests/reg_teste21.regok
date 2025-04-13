@@ -7,42 +7,57 @@ R2: 0xdeadc000
 Write to R2
 R2: 0xdeadbeff
 ===
+Write to R5
+R5: 0x11223000
+===
+Write to R5
+R5: 0x11223344
+===
 Write to R3
 R3: 0xdeadbeff
 ===
 Write to R3
-R3: 0xffffbeff
+R3: 0xdead3344
 ===
 Write to R3
-R3: 0xffffdead
+R3: 0x00003344
 ===
 Write to R3
-R3: 0x0000beff
+R3: 0xffad3344
 ===
 Write to R3
-R3: 0x0000dead
-===
-Write to R3
-R3: 0xffffffff
-===
-Write to R3
-R3: 0xffffffbe
+R3: 0x00003344
 ===
 Write to R3
 R3: 0xffffffad
 ===
 Write to R3
-R3: 0xffffffde
+R3: 0x00003344
 ===
 Write to R3
-R3: 0x000000ff
+R3: 0x0000ffad
 ===
 Write to R3
-R3: 0x000000be
+R3: 0x00000044
+===
+Write to R3
+R3: 0x00000033
+===
+Write to R3
+R3: 0xffffffad
+===
+Write to R3
+R3: 0xffffffff
+===
+Write to R3
+R3: 0x00000044
+===
+Write to R3
+R3: 0x00000033
 ===
 Write to R3
 R3: 0x000000ad
 ===
 Write to R3
-R3: 0x000000de
+R3: 0x000000ff
 ===

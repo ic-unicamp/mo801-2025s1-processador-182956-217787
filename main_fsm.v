@@ -20,29 +20,25 @@ module main_fsm (
     output reg [1:0]  alu_op
 );
     // FSM State Definition
-    parameter FETCH     = 4'b0000;
-    parameter DECODE    = 4'b0001;
-    parameter JAL       = 4'b0010;
-    parameter ALU_WB    = 4'b0011;
-    parameter MEM_WB    = 4'b0100;
-    parameter BRANCH    = 4'b0101;
-    parameter EXECUTE_I = 4'b0110;
-    parameter EXECUTE_R = 4'b0111;
-    parameter MEM_ADDR  = 4'b1000;
-    parameter MEM_READ  = 4'b1001;
-    parameter MEM_WRITE = 4'b1010;
-    parameter AUIPC     = 4'b1100;
-    parameter JALR      = 4'b1101;
-    parameter UPDATE_PC   = 4'b1110;
-    parameter MEM_WRITE_FIN = 4'b1111;
-    // TODO: Define the other states
+    parameter FETCH         = 4'b0000;
+    parameter DECODE        = 4'b0001;
+    parameter JAL           = 4'b0010; 
+    parameter ALU_WB        = 4'b0011;
+    parameter MEM_WB        = 4'b0100;
+    parameter BRANCH        = 4'b0101;
+    parameter EXECUTE_I     = 4'b0110;
+    parameter EXECUTE_R     = 4'b0111;
+    parameter MEM_ADDR      = 4'b1000;
+    parameter MEM_READ      = 4'b1001;
+    parameter MEM_WRITE     = 4'b1010;
+    parameter AUIPC         = 4'b1011; 
+    parameter JALR          = 4'b1100;
+    parameter UPDATE_PC     = 4'b1101;
+    // parameter MEM_WRITE_FIN = 4'b1110;
+
+
 
     reg [3:0] state, next_state;
-    wire is_less_than;
-    wire is_less_than_unsigned;
-
-    assign is_less_than           = ~zero;
-    assign is_less_than_unsigned  = ~zero;
 
     // State register
     always @(posedge clk or negedge rst) begin
@@ -58,24 +54,22 @@ module main_fsm (
         case (state)
             FETCH:
                 next_state = DECODE;
-            
+
             DECODE: begin
                 case (opcode)
-                    // TODO: Write the logic for other states
                     `OP_R_TYPE: next_state = EXECUTE_R;
                     `OP_I_TYPE: next_state = EXECUTE_I;
-                    `OP_I_LOAD: next_state = MEM_ADDR;
-                    `OP_S_TYPE: next_state = MEM_ADDR;
+                    `OP_I_LOAD: next_state = MEM_ADDR; // Go to address calculation
+                    `OP_S_TYPE: next_state = MEM_ADDR; // Go to address calculation
                     `OP_B_TYPE: next_state = BRANCH;
                     `OP_J_TYPE: next_state = JAL;
                     `OP_I_JALR: next_state = JALR;
-                    `OP_U_LUI:  next_state = EXECUTE_I;
-                    `OP_U_AUIPC: next_state = ALU_WB;
-                    default: next_state = FETCH; // Default to FETCH for unknown opcodes
+                    `OP_U_LUI:  next_state = EXECUTE_I; // LUI uses immediate path
+                    `OP_U_AUIPC: next_state = ALU_WB; // AUIPC writes back ALU result
+                    default: next_state = FETCH;
                 endcase
             end
 
-            // TODO: Write the logic for the other states
             EXECUTE_R:
                 next_state = ALU_WB;
 
@@ -83,38 +77,53 @@ module main_fsm (
                 next_state = ALU_WB;
 
             JAL:
-                next_state = UPDATE_PC;
+                next_state = UPDATE_PC; // Needs separate state to allow PC write
 
             JALR:
-                next_state = UPDATE_PC;
+                next_state = UPDATE_PC; // Needs separate state to allow PC write
 
             UPDATE_PC:
                 next_state = FETCH;
 
-            MEM_ADDR: begin
-                if (opcode == `OP_S_TYPE)
-                    next_state = MEM_WRITE;
+            MEM_ADDR: begin // Address calculation for Load/Store
+                if (opcode == `OP_I_LOAD)
+                    next_state = MEM_READ;    
+                else if (opcode == `OP_S_TYPE) begin
+                    if (funct3 == 3'b000 || funct3 == 3'b001) // SB/SH need read-modify-write
+                        next_state = MEM_READ;
+                    else if ( funct3 == 3'b010) // SW can write directly
+                        next_state = MEM_WRITE;   
+                    else
+                        next_state = FETCH; // Should not happen
+                end
                 else
-                    next_state = MEM_READ;
+                    next_state = FETCH; // Should not happen
             end
 
-            MEM_READ:
-                next_state = MEM_WB;
-
+            MEM_READ:  // Read cycle for load or sb/sh
+                if (opcode == `OP_I_LOAD)
+                    next_state = MEM_WB; // Load instruction
+                else if (funct3 == 3'b000 || funct3 == 3'b001) // SB/SH
+                    next_state = MEM_WRITE; // Go to write cycle
+                else
+                    next_state = FETCH; // Should not happen
+            
             MEM_WRITE:
-                next_state = FETCH;
-            
+                next_state = FETCH; 
             // TODO: Decide if we will use this extra state or modify memory.v
-            MEM_WRITE_FIN:
-               next_state = FETCH; 
-                
-            ALU_WB:
+
+            // MEM_WRITE:
+            //     next_state = MEM_WRITE_FIN; 
+            // MEM_WRITE_FIN:
+            //    next_state = FETCH; 
+
+            ALU_WB: // Write back for R-Type, I-Type, AUIPC
                 next_state = FETCH;
-            
-            BRANCH:
+
+            BRANCH: // Branch resolution
                 next_state = FETCH;
-            
-            MEM_WB:
+
+            MEM_WB: // Write back for Load instructions
                 next_state = FETCH;
 
             default:
@@ -124,27 +133,28 @@ module main_fsm (
 
     // Output logic
     always @(*) begin
+        // Default values
         PCWrite   = 1'b0;
-        AdrSrc    = 1'b0;
+        AdrSrc    = 1'b0; // Default to PC for address
         MemWrite  = 1'b0;
         IRWrite   = 1'b0;
-        ResultSrc = 2'b00;
-        ALUSrcB   = 2'b00;
-        ALUSrcA   = 2'b00;
+        ResultSrc = 2'b00; // Default to ALUOut
+        ALUSrcB   = 2'b00; // Default to RegReadData2
+        ALUSrcA   = 2'b00; // Default to PC
         RegWrite  = 1'b0;
-        alu_op    = 2'b00;
+        alu_op    = 2'b00; // Default to ADD
 
         case (state)
             FETCH: begin
-                AdrSrc    = 1'b0;  // Select PC as memory address
-                IRWrite   = 1'b1;  // Enable writing to Instruction Register
-                ALUSrcA   = 2'b00; // Select PC for ALU input A
-                ALUSrcB   = 2'b10; // Select constant 4 for ALU input B
-                ResultSrc = 2'b10; // Select ALU Result
-                PCWrite   = 1'b1;  // Enable writing to PC
-                alu_op    = 2'b00;
+                AdrSrc    = 1'b0;  // PC for memory address 
+                IRWrite   = 1'b1;  // Latch instruction
+                ALUSrcA   = 2'b00; // PC
+                ALUSrcB   = 2'b10; // Constant 4
+                ResultSrc = 2'b10; // Use ALU result (PC+4) for next PC
+                PCWrite   = 1'b1;  // Write PC+4 to PC
+                alu_op    = 2'b00; // ADD
             end
-            
+
             DECODE: begin
                 if (opcode == `OP_I_JALR || opcode == `OP_J_TYPE) begin
                     ALUSrcA   = 2'b01; // Select old PC for ALU input A
@@ -161,17 +171,17 @@ module main_fsm (
                     alu_op   = 2'b00;  // Add operation
                 end
             end
-            
+
             EXECUTE_R: begin
-                ALUSrcA = 2'b10;   // Select rs1 value for ALU input A
-                ALUSrcB = 2'b00;   // Select rs2 value for ALU input B
-                alu_op  = 2'b10;   // ALU operation determined by funct3/funct7
+                ALUSrcA = 2'b10;   // rs1
+                ALUSrcB = 2'b00;   // rs2
+                alu_op  = 2'b10;   // Op depends on funct3/funct7 (decoded by alu_decoder)
             end
 
-            EXECUTE_I: begin
-                ALUSrcA = 2'b10;   // Select rs1 value for ALU input A
-                ALUSrcB = 2'b01;   // Select rs2 value for ALU input B
-                alu_op  = 2'b10;   // ALU operation determined by funct3/funct7
+            EXECUTE_I: begin // Also handles LUI
+                ALUSrcA = 2'b10;   // rs1 (or 0 for LUI)
+                ALUSrcB = 2'b01;   // immediate
+                alu_op  = 2'b10;   // Op depends on funct3/opcode (decoded by alu_decoder)
             end
 
             JAL: begin
@@ -204,14 +214,16 @@ module main_fsm (
             end
 
             MEM_READ: begin
-                ALUSrcA = 2'b10;    // Select rs1 value for ALU input A
-                ALUSrcB = 2'b01;    // Select immediate for ALU input B 
-                alu_op = 2'b10;     // Load operation (Add)
+                ALUSrcA   = 2'b10;  // Select rs1 value for ALU input A
+                ALUSrcB   = 2'b01;  // Select immediate for ALU input B 
+                alu_op    = 2'b10;  // Load operation (Add)
                 ResultSrc = 2'b00;  // Select ALU result for address
-                AdrSrc = 1'b1;      // Use ALU result as memory address
+                AdrSrc    = 1'b1;   // Use ALU result as memory address
+                // Memory performs read based on AdrSrc
+                // Result will be latched in datapath's data_to_save register next cycle
             end
-            
-            MEM_WRITE: begin
+
+            MEM_WRITE: begin // Write cycle for Store (SB/SH/SW)
                 ALUSrcA   = 2'b10; // Select rs1 value for ALU input A
                 ALUSrcB   = 2'b01; // Select immediate for ALU input B 
                 alu_op    = 2'b10; // Load operation (Add)
@@ -220,68 +232,58 @@ module main_fsm (
                 MemWrite  = 1'b1;  // Enable memory write
             end
 
-            MEM_WRITE_FIN: begin
-                ALUSrcA = 2'b10;   // Select rs1 value for ALU input A
-                ALUSrcB = 2'b01;   // Select immediate for ALU input B 
-                alu_op = 2'b10;    // Load operation (Add)
-                ResultSrc = 2'b00; // Select ALU result for address
-                AdrSrc = 1'b1;     // Use ALU result as memory address
-                MemWrite = 1'b1;   // Enable memory write
-            end
+            // MEM_WRITE_FIN: begin
+            //     ALUSrcA    = 2'b10;   // Select rs1 value for ALU input A
+            //     ALUSrcB    = 2'b01;   // Select immediate for ALU input B 
+            //     alu_op     = 2'b10;    // Load operation (Add)
+            //     ResultSrc  = 2'b00; // Select ALU result for address
+            //     AdrSrc     = 1'b1;     // Use ALU result as memory address
+            //     MemWrite   = 1'b1;   // Enable memory write
+            // end
 
-            MEM_WB: begin
+            MEM_WB: begin // Write back for Load
                 ALUSrcA   = 2'b10; // Select rs1 value for ALU input A
                 ALUSrcB   = 2'b01; // Select immediate for ALU input B 
-                alu_op    = 2'b10; // ALU performs addition
-                ResultSrc = 2'b01; // Select Memory Data
+                alu_op    = 2'b10; // Load operation (Add)
+                ResultSrc = 2'b01; // Select Memory Data (processed by load_handler)
                 RegWrite  = 1'b1;  // Enable register write
             end
 
-            ALU_WB:  begin
+            ALU_WB:  begin // Write back for R/I/AUIPC
                 ResultSrc = 2'b00; // Select ALU Out
                 RegWrite  = 1'b1;  // Enable register write
             end
 
             // TODO: Check if it's correct
             BRANCH: begin
-                ALUSrcA   = 2'b10;  // Select register data for ALU input A
-                ALUSrcB   = 2'b00;  // Select register data for ALU input B
-                ResultSrc = 2'b00;  // Select Memory Data TODO: This comment seems incorrect
-                alu_op    = 2'b01;
+                // Perform comparison (rs1 - rs2)
+                ALUSrcA   = 2'b10;  // rs1
+                ALUSrcB   = 2'b00;  // rs2
+                alu_op    = 2'b01;  // SUB (or SLT/SLTU via alu_decoder for complex branches)
+
+                // Use branch target calculated in DECODE state (available in ALUOut register)
+                ResultSrc = 2'b00; // Select ALU Out (branch target address)
+
+                // PCWrite depends on branch condition
                 case (funct3)
-                    3'b000: begin // BEQ
-                        PCWrite = zero ? 1'b1 : 1'b0;
-                    end
-                    3'b001: begin // BNE
-                        PCWrite = ~zero ? 1'b1 : 1'b0;
-                    end
-                    3'b100: begin // BLT (signed)
-                        PCWrite = blt ? 1'b1 : 1'b0;
-                    end
-                    3'b101: begin // BGE (signed)
-                        PCWrite = bge ? 1'b1 : 1'b0;
-                    end
-                    3'b110: begin // BLTU (unsigned)
-                        PCWrite = bltu ? 1'b1 : 1'b0;
-                    end
-                    3'b111: begin // BGEU (unsigned)
-                        PCWrite = bgeu ? 1'b1 : 1'b0;
-                    end
-                    default: begin
-                        PCWrite = 1'b0; // Invalid funct3
-                    end
+                    3'b000: PCWrite = zero;     // BEQ: branch if zero is true
+                    3'b001: PCWrite = ~zero;    // BNE: branch if zero is false
+                    3'b100: PCWrite = blt;      // BLT: branch if blt is true
+                    3'b101: PCWrite = bge;      // BGE: branch if bge is true
+                    3'b110: PCWrite = bltu;     // BLTU: branch if bltu is true
+                    3'b111: PCWrite = bgeu;     // BGEU: branch if bgeu is true
+                    default: PCWrite = 1'b0;    // Invalid funct3
                 endcase
             end
 
-            default: begin
-                // Jump to the next intruction as default
-                ALUSrcA  = 2'b00;  // Select PC for ALU input A
-                ALUSrcB  = 2'b10;  // Select constant 4 for ALU input B
-                ResultSrc = 2'b10; // Select ALU Result
-                PCWrite  = 1'b1;   // Enable writing to PC            
+            default: begin // Should not happen, default to FETCH-like behavior
+                IRWrite   = 1'b1;
+                ALUSrcA   = 2'b00;
+                ALUSrcB   = 2'b10;
+                ResultSrc = 2'b10;
+                PCWrite   = 1'b1;
+                alu_op    = 2'b00;
             end
         endcase
     end
-     
-    
 endmodule

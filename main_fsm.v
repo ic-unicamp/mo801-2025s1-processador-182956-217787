@@ -34,6 +34,7 @@ module main_fsm (
     parameter AUIPC     = 4'b1100;
     parameter JALR      = 4'b1101;
     parameter UPDATE_PC   = 4'b1110;
+    parameter MEM_WRITE_FIN = 4'b1111;
     // TODO: Define the other states
 
     reg [3:0] state, next_state;
@@ -69,7 +70,7 @@ module main_fsm (
                     `OP_J_TYPE: next_state = JAL;
                     `OP_I_JALR: next_state = JALR;
                     `OP_U_LUI:  next_state = EXECUTE_I;
-                    `OP_U_AUIPC: next_state = AUIPC;
+                    `OP_U_AUIPC: next_state = ALU_WB;
                     default: next_state = FETCH; // Default to FETCH for unknown opcodes
                 endcase
             end
@@ -99,10 +100,12 @@ module main_fsm (
 
             MEM_READ:
                 next_state = MEM_WB;
-            AUIPC:
-                next_state = ALU_WB;
+
             MEM_WRITE:
-                next_state = FETCH;
+                next_state = MEM_WRITE_FIN;
+            
+            MEM_WRITE_FIN:
+               next_state = FETCH; 
                 
             ALU_WB:
                 next_state = FETCH;
@@ -132,92 +135,111 @@ module main_fsm (
 
         case (state)
             FETCH: begin
-                AdrSrc    = 1'b0;   // Select PC as memory address
-                IRWrite   = 1'b1;   // Enable writing to Instruction Register
-                ALUSrcA   = 2'b00;  // Select PC for ALU input A
-                ALUSrcB   = 2'b10;  // Select constant 4 for ALU input B
+                AdrSrc    = 1'b0;  // Select PC as memory address
+                IRWrite   = 1'b1;  // Enable writing to Instruction Register
+                ALUSrcA   = 2'b00; // Select PC for ALU input A
+                ALUSrcB   = 2'b10; // Select constant 4 for ALU input B
                 ResultSrc = 2'b10; // Select ALU Result
-                PCWrite   = 1'b1;   // Enable writing to PC
+                PCWrite   = 1'b1;  // Enable writing to PC
                 alu_op    = 2'b00;
             end
             
             DECODE: begin
                 if (opcode == `OP_I_JALR || opcode == `OP_J_TYPE) begin
-                    ALUSrcA  = 2'b01;  // Select old PC for ALU input A
-                    ALUSrcB  = 2'b10;  // Select 4 for ALU input B
+                    ALUSrcA   = 2'b01; // Select old PC for ALU input A
+                    ALUSrcB   = 2'b10; // Select 4 for ALU input B
                     ResultSrc = 2'b00; // Select ALU Out
                     RegWrite  = 1'b1;  // Enable register write
-                    alu_op   = 2'b00;  // Add operation
+                    alu_op    = 2'b00; // Add operation
                 end else begin
                     ALUSrcA  = 2'b01;  // Select old PC for ALU input A
                     ALUSrcB  = 2'b01;  // Select immediate for ALU input B
-                    alu_op   = 2'b00;
+                    alu_op   = 2'b00;  // Add operation
                 end
             end
             
             EXECUTE_R: begin
                 ALUSrcA = 2'b10;   // Select rs1 value for ALU input A
                 ALUSrcB = 2'b00;   // Select rs2 value for ALU input B
-                alu_op = 2'b10;     // ALU operation determined by funct3/funct7
+                alu_op  = 2'b10;   // ALU operation determined by funct3/funct7
             end
 
             EXECUTE_I: begin
                 ALUSrcA = 2'b10;   // Select rs1 value for ALU input A
                 ALUSrcB = 2'b01;   // Select rs2 value for ALU input B
-                alu_op = 2'b10;     // ALU operation determined by funct3/funct7
+                alu_op  = 2'b10;   // ALU operation determined by funct3/funct7
             end
 
             JAL: begin
-                ALUSrcA = 2'b01;   // Select old PC for ALU input A
-                ALUSrcB = 2'b01;   // Select immediate for ALU input B
-                alu_op = 2'b10;    // Special operation (JAL)
+                ALUSrcA   = 2'b01; // Select old PC for ALU input A
+                ALUSrcB   = 2'b01; // Select immediate for ALU input B
+                alu_op    = 2'b10; // Special operation (JAL)
                 ResultSrc = 2'b00; // Select ALU Out for link address
-                PCWrite = 1'b1;    // Enable PC write
+                PCWrite   = 1'b1;  // Enable PC write
             end
 
             JALR: begin
-                ALUSrcA = 2'b10;   // Select register file for ALU input A
-                ALUSrcB = 2'b01;   // Select immediate for ALU input B
-                alu_op = 2'b10;    // Special operation (JAL)
+                ALUSrcA   = 2'b10; // Select register file for ALU input A
+                ALUSrcB   = 2'b01; // Select immediate for ALU input B
+                alu_op    = 2'b10; // Special operation (JAL)
                 ResultSrc = 2'b00; // Select ALU Out for link address
-                PCWrite = 1'b1;    // Enable PC write
+                PCWrite   = 1'b1;  // Enable PC write
             end
 
             UPDATE_PC: begin
-                PCWrite = 1'b1;    // Enable PC write
+                PCWrite = 1'b1;  // Enable PC write
             end
 
             MEM_ADDR: begin
-                ALUSrcA = 2'b10;   // Select rs1 value for ALU input A
-                ALUSrcB = 2'b01;   // Select immediate for ALU input B 
-                alu_op = 2'b00;     // ALU performs addition
+                ALUSrcA = 2'b10; // Select rs1 value for ALU input A
+                ALUSrcB = 2'b01; // Select immediate for ALU input B 
+                alu_op  = 2'b10; // ALU performs addition
             end
 
             MEM_READ: begin
-                ResultSrc = 2'b00; // Select ALU result for address
-                AdrSrc = 1'b1;     // Use ALU result as memory address
+                ALUSrcA = 2'b10;    // Select rs1 value for ALU input A
+                ALUSrcB = 2'b01;    // Select immediate for ALU input B 
+                alu_op = 2'b10;     // Load operation (Add)
+                ResultSrc = 2'b00;  // Select ALU result for address
+                AdrSrc = 1'b1;      // Use ALU result as memory address
             end
             
             MEM_WRITE: begin
+                ALUSrcA   = 2'b10; // Select rs1 value for ALU input A
+                ALUSrcB   = 2'b01; // Select immediate for ALU input B 
+                alu_op    = 2'b10; // Load operation (Add)
+                ResultSrc = 2'b00; // Select ALU result for address
+                AdrSrc    = 1'b1;  // Use ALU result as memory address
+                MemWrite  = 1'b1;  // Enable memory write
+            end
+
+            MEM_WRITE_FIN: begin
+                ALUSrcA = 2'b10;   // Select rs1 value for ALU input A
+                ALUSrcB = 2'b01;   // Select immediate for ALU input B 
+                alu_op = 2'b10;    // Load operation (Add)
                 ResultSrc = 2'b00; // Select ALU result for address
                 AdrSrc = 1'b1;     // Use ALU result as memory address
                 MemWrite = 1'b1;   // Enable memory write
             end
-            AUIPC: begin
-                ALUSrcA = 2'b01;   // Select immediate for ALU input B
-                ALUSrcB = 2'b01;   // Select immediate for ALU input B
-                alu_op = 2'b10;    // Special operation (LUI)
+
+            MEM_WB: begin
+                ALUSrcA   = 2'b10; // Select rs1 value for ALU input A
+                ALUSrcB   = 2'b01; // Select immediate for ALU input B 
+                alu_op    = 2'b10; // ALU performs addition
+                ResultSrc = 2'b01; // Select Memory Data
+                RegWrite  = 1'b1;  // Enable register write
             end
+
             ALU_WB:  begin
                 ResultSrc = 2'b00; // Select ALU Out
                 RegWrite  = 1'b1;  // Enable register write
             end
 
             BRANCH: begin
-                ALUSrcA  = 2'b10;  // Select register data for ALU input A
-                ALUSrcB  = 2'b00;  // Select register data for ALU input B
-                ResultSrc = 2'b00; // Select Memory Data
-                alu_op   = 2'b01;
+                ALUSrcA   = 2'b10;  // Select register data for ALU input A
+                ALUSrcB   = 2'b00;  // Select register data for ALU input B
+                ResultSrc = 2'b00;  // Select Memory Data
+                alu_op    = 2'b01;
                 case (funct3)
                     3'b000: begin // BEQ
                         PCWrite = zero ? 1'b1 : 1'b0;
@@ -241,11 +263,6 @@ module main_fsm (
                         PCWrite = 1'b0; // Invalid funct3
                     end
                 endcase
-            end
-
-            MEM_WB: begin
-                ResultSrc = 2'b01; // Select Memory Data
-                RegWrite  = 1'b1;  // Enable register write
             end
 
             default: begin

@@ -181,12 +181,15 @@ module main_fsm_tb;
         reset_expected_outputs();
         expected_ALUSrcA = 2'b10;   // rs1 (base address)
         expected_ALUSrcB = 2'b01;   // immediate (offset)
-        expected_alu_op = 2'b00;    // ALU Add (calculate address)
+        expected_alu_op = 2'b10;    // ALU Add (calculate address)
         check_outputs("MEM_ADDR (Load)");
         #10; // Wait for next clock edge (moves to MEM_READ)
 
         // 9. MEM_READ State
         reset_expected_outputs();
+        expected_ALUSrcA = 2'b10;   // rs1 (base address)
+        expected_ALUSrcB = 2'b01;   // immediate (offset)
+        expected_alu_op = 2'b10;    // ALU Add (calculate address)
         expected_ResultSrc = 2'b00; // Use ALU result from previous state
         expected_AdrSrc = 1'b1;     // Use ALU result as memory address
         check_outputs("MEM_READ");
@@ -194,6 +197,9 @@ module main_fsm_tb;
 
         // 10. MEM_WB State (Write Back from Load)
         reset_expected_outputs();
+        expected_ALUSrcA = 2'b10;   // rs1 (base address)
+        expected_ALUSrcB = 2'b01;   // immediate (offset)
+        expected_alu_op = 2'b10;    // ALU Add (calculate address)
         expected_ResultSrc = 2'b01; // Select Memory Data
         expected_RegWrite  = 1'b1;  // Write to Register File
         check_outputs("MEM_WB (from Load)");

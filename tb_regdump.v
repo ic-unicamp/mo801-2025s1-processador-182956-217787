@@ -19,6 +19,7 @@ module tb_regdump();
   );
 
   memory m(
+    .clk(clk),
     .address(address),
     .data_in(data_out),
     .data_out(data_in),
@@ -71,6 +72,10 @@ module tb_regdump();
 
     for (i = 0; i < dut.dp.register_file_unit.NREGISTER; i = i + 1) begin
         $dumpvars(0, dut.dp.register_file_unit.register[i]); // Dump all registers
+    end
+
+    for (i = 0; i <= 1024; i = i + 1) begin
+        $dumpvars(0, m.mem[i]); // Dump all memory locations
     end
 
 

@@ -45,8 +45,8 @@
 - [x] `LW` – Load Word
 - [?] `LBU` – Load Byte Unsigned
 - [?] `LHU` – Load Halfword Unsigned
-- [ ] `SB` – Store Byte
-- [ ] `SH` – Store Halfword
+- [?] `SB` – Store Byte
+- [?] `SH` – Store Halfword
 - [x] `SW` – Store Word
 
 ### 🛠️ Upper Immediate Instructions

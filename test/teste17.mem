@@ -1,5 +1,40 @@
-00500293 // addi x5, x0, 5
-00000393 // addi x7, x0, 0
-0053a023 // sw x5, 0(x7)
-0003ae03 // lw x28, 0(x7)
-01ce0e33 // add x28, x28, x28
+// _boot:
+//     # Initialize and pass argument via a0
+//     addi a0, x0, 0x0400    # a0 = 0x0400 (1024)
+//     add a0, a0, a0         # a0 = 0x0800 (2048) - argument for function
+//   
+//     # Initial store before function call
+//     addi t0, x0, 1         # t0 = 1 (temporary register)
+//     sw t0, 0(a0)           # Store 1 at 0x0800
+//    
+//     # Call function with argument in a0
+//     jal ra, store_value
+//     addi t0, x0, 3         # t0 = 1 (temporary register)
+//     sw t0, 0(a0)           # Store 1 at 0x0800
+//    
+//     j end                  # Infinite loop after return
+//
+// # Function definition
+// # Arguments: a0 = memory address to modify
+// store_value:
+//     # Store new value using argument
+//     addi t1, x0, 2         # t1 = 2 (temporary register)
+//     sw t1, 0(a0)           # Store 2 at address in a0
+//  
+//     # Return to caller
+//     jalr x0, ra, 0
+//
+// end:
+//     j end                  # Halt execution
+40000513
+00a50533
+00100293
+00552023
+010000ef
+00300293
+00552023
+0100006f
+00200313
+00652023
+00008067
+7ed0006f

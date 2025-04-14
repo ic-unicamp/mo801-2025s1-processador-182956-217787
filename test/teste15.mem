@@ -1,3 +1,39 @@
-00000293 // addi x5, x0, 0
-00300313 // addi x6, x0, 3
-00530e33 // add x28, x6, x5
+// _boot:
+//     addi a0, x0, 0x0400
+//     add a0, a0, a0
+//   
+//     # Initial store before function call
+//     addi t0, x0, 1
+//     sw t0, 0(a0)           # Store 1 at 0x0800
+//    
+//     # Call function with argument in a0
+//     jal ra, store_value
+//     addi t0, x0, 3
+//     sw t0, 0(a0)           # Store 1 at 0x0800
+//    
+//     j end
+//
+// # Arguments: a0 = memory address to modify
+// store_value:
+//     # Store new value using argument
+//     addi t1, x0, 2
+//     sw t1, 0(a0)           # Store 2 at address in a0
+//  
+//     # Return to caller
+//     jalr x0, ra, 0
+//
+// end:
+//     j end                  # Halt execution
+
+40000513
+00a50533
+00100293
+00552023
+010000ef
+00300293
+00552023
+0100006f
+00200313
+00652023
+00008067
+7ed0006f

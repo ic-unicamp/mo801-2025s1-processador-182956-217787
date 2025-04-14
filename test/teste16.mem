@@ -1,0 +1,55 @@
+// _boot:
+//     # Initialize memory pointer to 0x0800
+//     addi a0, x0, 0x0400      # a0 = 1024 (0x0400)
+//     slli a0, a0, 1           # a0 = 0x0800 (2048)
+
+//     # Outer loop (multiplier from 1-10)
+//     addi t0, x0, 1           # t0 = multiplier (row)
+// outer_loop:
+//     # Inner loop (multiplicand from 1-10)
+//     addi t1, x0, 1           # t1 = multiplicand (column)
+// inner_loop:
+//     # Multiply t0*t1 via repeated addition
+//     addi t2, x0, 0           # t2 = product accumulator
+//     addi t3, t1, 0           # t3 = addition counter (copy of t1)
+// mult_loop:
+//     add t2, t2, t0           # product += multiplier
+//     addi t3, t3, -1          # decrement counter
+//     bnez t3, mult_loop       # repeat until counter=0
+
+//     # Store result and advance pointer
+//     sw t2, 0(a0)             # Store product at current address
+//     addi a0, a0, 4           # Increment memory address
+
+//     # Inner loop control
+//     addi t1, t1, 1           # increment multiplicand
+//     slti t4, t1, 11          # t4 = (t1 < 11) ? 1 : 0
+//     bnez t4, inner_loop      # continue if t1 <= 10
+
+//     # Outer loop control
+//     addi t0, t0, 1           # increment multiplier
+//     slti t4, t0, 11          # t4 = (t0 < 11) ? 1 : 0
+//     bnez t4, outer_loop      # continue if t0 <= 10
+
+//     # Halt execution
+// end:
+//     j end
+
+40000513
+00151513
+00100293
+00100313
+00000393
+00030e13
+005383b3
+fffe0e13
+fe0e1ce3
+00752023
+00450513
+00130313
+00b32e93
+fc0e9ee3
+00128293
+00b2ae93
+fc0e96e3
+0000006f

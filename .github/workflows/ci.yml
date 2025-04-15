@@ -1,0 +1,46 @@
+name: RISC-V Processor CI
+
+on:
+  # Trigger the workflow on push events for all branches
+  push:
+    branches: [ '**' ]
+
+  # Trigger the workflow on pull request events targeting the main branch
+  pull_request:
+    branches: [ main ] 
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build and Test Processor
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository code
+      - name: Check out repository code
+        uses: actions/checkout@v4 
+
+      # Step 2: Install dependencies
+      - name: Install dependencies (Icarus Verilog and Make)
+        run: |
+          sudo apt-get update -q # Update package list quietly
+          # Install iverilog. 'make' is usually pre-installed but included for clarity.
+          # The '-y' flag automatically confirms the installation.
+          sudo apt-get install -y iverilog make
+          echo "-------------------------------------"
+          echo "Installed iverilog version:"
+          iverilog -V # Print version to confirm installation
+          echo "-------------------------------------"
+          echo "Installed make version:"
+          make --version # Print version to confirm installation
+          echo "-------------------------------------"
+
+      # Step 3: Run all tests via Makefile
+      # This executes the 'test' target defined in your makefile.
+      # This target should compile the necessary code and run unit,
+      # integration, and register dump tests as configured.
+      # The makefile is expected to return a non-zero exit code if any test fails.
+      - name: Run all tests
+        run: make test

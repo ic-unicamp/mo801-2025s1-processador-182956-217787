@@ -9,8 +9,8 @@
 //    
 //     # Call function with argument in a0
 //     jal ra, store_value
-//     addi t0, x0, 3         # t0 = 1 (temporary register)
-//     sw t0, 0(a0)           # Store 1 at 0x0800
+//     addi t0, x0, 3         # t0 = 3 (temporary register)
+//     sw t0, 0(a0)           # Store 3 at 0x0800
 //    
 //     j end                  # Infinite loop after return
 //
